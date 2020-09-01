@@ -236,6 +236,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - in `mxpoly.v`, added `comm_mx_horner`, `comm_horner_mx`,
   `comm_horner_mx2`, `horner_mx_stable`, `comm_mx_stable_kermxpoly`,
   and `comm_mx_stable_geigenspace`.
+- in `mxalgebra.v`, new definitions `maxrankfun`, `fullrankfun` which
+  are "subset function" to be plugged in `rowsub`, with lemmas:
+  `maxrowsub_free`, `eq_maxrowsub`, `maxrankfun_inj`,
+  `maxrowsub_full`, `fullrowsub_full`, `fullrowsub_unit`,
+  `fullrowsub_free`, `mxrank_fullrowsub`, `eq_fullrowsub`, and
+  `fullrankfun_inj`.
 
 - in `ssralg.v`: 
    + Lemma `expr_sum` : equivalent for ring of `expn_sum`
