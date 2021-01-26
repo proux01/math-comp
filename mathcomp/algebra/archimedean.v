@@ -125,20 +125,25 @@ Implicit Types x y : R.
 
 Local Notation trunc := (@Num.Def.truncR R).
 
+Definition truncRP x :
+  if 0 <= x then (trunc x)%:R <= x < (trunc x).+1%:R else trunc x == 0%N :=
+  Num.Internals.truncRP x.
+
 Definition truncR_itv x : 0 <= x -> (trunc x)%:R <= x < (trunc x).+1%:R :=
   @Num.Internals.truncR_itv R x.
 
-Fact floorR_subproof x : {m | x \is Num.real -> m%:~R <= x < (m + 1)%:~R}.
+Fact floorR_subproof x :
+  {m | if x \is Num.real then m%:~R <= x < (m + 1)%:~R else m == 0}.
 Proof.
 have [Rx | _] := boolP (x \is Num.real); last by exists 0.
 without loss x_ge0: x Rx / x >= 0.
   have [x_ge0 | /ltW x_le0] := real_ge0P Rx; first exact.
-  case/(_ (- x)) => [||m /(_ isT)]; rewrite ?rpredN ?oppr_ge0 //.
+  case/(_ (- x)) => [||m]; rewrite ?rpredN ?oppr_ge0 //.
   rewrite ler_oppr ltr_oppl -!rmorphN opprD /= le_eqVlt.
   case: eqP => [-> _ | _ /andP[lt_x_m lt_m_x]].
     by exists (- m); rewrite lexx rmorphD ltr_addl ltr01.
   by exists (- m - 1); rewrite (ltW lt_m_x) subrK.
-by exists (Posz (trunc x)) => _; rewrite addrC -intS -!pmulrn truncR_itv.
+by exists (Posz (trunc x)); rewrite addrC -intS -!pmulrn truncR_itv.
 Qed.
 
 End ArchiNumDomain.
@@ -151,11 +156,9 @@ Definition floorR {R : archiNumDomainType} (x : R) := sval (floorR_subproof x).
 Definition ceilR {R : archiNumDomainType} (x : R) := - floorR (- x).
 End Def.
 
-Notation trunc := Num.Def.truncR.
+Notation trunc := truncR.
 Notation floor := floorR.
 Notation ceil := ceilR.
-Local Notation Rnat := Num.Def.Rnat.
-Local Notation Rint := Num.Def.Rint.
 Notation bound := Num.ExtraDef.archi_bound.
 
 Module Import Theory.
@@ -173,10 +176,6 @@ Local Notation Rnat := (@Rnat R).
 Local Notation Rint := (@Rint R).
 
 (* trunc and Rnat *)
-
-Local Definition truncRP x :
-  if 0 <= x then (trunc x)%:R <= x < (trunc x).+1%:R else trunc x == 0%N :=
-  Num.Internals.truncRP x.
 
 Definition truncR_itv x : 0 <= x -> (trunc x)%:R <= x < (trunc x).+1%:R :=
   @truncR_itv R x.
@@ -204,17 +203,16 @@ Lemma truncR0 : trunc 0 = 0%N. Proof. exact: natRK 0%N. Qed.
 Lemma truncR1 : trunc 1 = 1%N. Proof. exact: natRK 1%N. Qed.
 Hint Resolve truncR0 truncR1 : core.
 
-Lemma RnatP x : reflect (exists n, x = n%:R) (x \is a Rnat).
-Proof.
-rewrite RnatE; apply: (iffP eqP) => [<- | [n ->]]; first by exists (trunc x).
-by rewrite natRK.
-Qed.
-
-Lemma Rnat_nat n : n%:R \is a Rnat. Proof. by apply/RnatP; exists n. Qed.
+Lemma Rnat_nat n : n%:R \is a Rnat. Proof. by rewrite RnatE natRK. Qed.
 Hint Resolve Rnat_nat : core.
 
-Lemma truncRD :
-  {in Rnat & Num.nneg, {morph trunc : x y / x + y >-> (x + y)%N}}.
+Lemma RnatP x : reflect (exists n, x = n%:R) (x \is a Rnat).
+Proof.
+apply: (iffP idP) => [|[n ->]]; rewrite // RnatE => /eqP <-.
+by exists (trunc x).
+Qed.
+
+Lemma truncRD : {in Rnat & Rnneg, {morph trunc : x y / x + y >-> (x + y)%N}}.
 Proof.
 move=> _ y /RnatP[n ->] y_ge0; apply: truncR_def.
 by rewrite -addnS !natrD !natRK ler_add2l ltr_add2l truncR_itv.
@@ -242,19 +240,16 @@ Canonical Rnat_addrPred := AddrPred Rnat_semiring.
 Canonical Rnat_mulrPred := MulrPred Rnat_semiring.
 Canonical Rnat_semiringPred := SemiringPred Rnat_semiring.
 
-Lemma Rreal_Rnat : {subset Rnat <= Num.real}.
-Proof. by move=> _ /RnatP[m ->]. Qed.
+Lemma Rreal_Rnat : {subset Rnat <= Rreal}. Proof. by move=> _ /RnatP[m ->]. Qed.
 
 Lemma Rnat_normK x : x \is a Rnat -> `|x| ^+ 2 = x ^+ 2.
 Proof. by move/Rreal_Rnat/real_normK. Qed.
 
 Lemma truncR_gt0 x : (0 < trunc x)%N = (1 <= x).
 Proof.
-apply/idP/idP => [m_gt0 | x_ge1].
-  have /truncR_itv/andP[lemx _]: 0 <= x.
-    by move: (truncRP x) m_gt0; case: ifP => // _ /eqP ->.
-  by apply: le_trans lemx; rewrite ler1n.
-have /truncR_itv/andP[_ ltxm1] := le_trans ler01 x_ge1.
+case: ifP (truncRP x) => [le0x /andP[lemx ltxm1] | le0x /eqP ->]; last first.
+  by apply/esym; apply/contraFF/le_trans: le0x.
+apply/idP/idP => [m_gt0 | x_ge1]; first by apply: le_trans lemx; rewrite ler1n.
 by rewrite -ltnS -(ltr_nat R) (le_lt_trans x_ge1).
 Qed.
 
@@ -303,16 +298,21 @@ Qed.
 
 (* floor and Rint *)
 
+Local Lemma floorRP x :
+  if x \is Rreal then
+    (floor x)%:~R <= x < (floor x + 1)%:~R else floor x == 0%N.
+Proof. by rewrite /floor; case: (floorR_subproof x). Qed.
+
 Lemma RintE x : (x \is a Rint) = (x \is a Rnat) || (- x \is a Rnat).
 Proof. by case: R x => ? [? []]. Qed.
 
-Lemma floorR_itv x : x \is Num.real -> (floor x)%:~R <= x < (floor x + 1)%:~R.
-Proof. by rewrite /floor => Rx; case: (floorR_subproof x) => //= m; apply. Qed.
+Lemma floorR_itv x : x \is Rreal -> (floor x)%:~R <= x < (floor x + 1)%:~R.
+Proof. by case: (x \is _) (floorRP x). Qed.
 
-Lemma ge_floorR x : x \is Num.real -> (floor x)%:~R <= x.
+Lemma ge_floorR x : x \is Rreal -> (floor x)%:~R <= x.
 Proof. by move=> /floorR_itv /andP[]. Qed.
 
-Lemma lt_succ_floorR x : x \is Num.real -> x < (floor x + 1)%:~R.
+Lemma lt_succ_floorR x : x \is Rreal -> x < (floor x + 1)%:~R.
 Proof. by move=> /floorR_itv /andP[]. Qed.
 
 Lemma floorR_def x m : m%:~R <= x < (m + 1)%:~R -> floor x = m.
@@ -322,24 +322,24 @@ move: (ger_real lemx); rewrite realz => /floorR_itv/andP[lefx ltxf1].
 by rewrite -!(ltr_int R) 2?(@le_lt_trans _ _ x).
 Qed.
 
-Lemma floorR_ge_int x n : x \is Num.real -> n%:~R <= x = (n <= floorR x).
+Lemma floorR_ge_int x n : x \is Rreal -> n%:~R <= x = (n <= floor x).
 Proof.
 move=> /floorR_itv /andP[lefx ltxf1]; apply/idP/idP => lenx.
-+ by move: ltxf1 => /(le_lt_trans lenx); rewrite ltr_int ltz_addr1.
-+ by move: lefx; apply: le_trans; rewrite ler_int.
+  by rewrite -ltz_addr1 -(ltr_int R); apply: le_lt_trans ltxf1.
+by apply: le_trans lefx; rewrite ler_int.
 Qed.
 
-Lemma floorR_le : {in Num.real &, {homo (@floorR R) : x y / x <= y}}.
+Lemma floorR_le : {homo floor : x y / x <= y}.
 Proof.
-move=> x y Rx Ry.
-rewrite -floorR_ge_int //.
-apply: le_trans; exact: ge_floorR.
+move=> x y lexy; move: (floorRP x) (floorRP y); rewrite (ger_real lexy).
+case: ifP => [_ /andP[lefx _] /andP[_] | _ /eqP-> /eqP-> //].
+by move=> /(le_lt_trans lexy) /(le_lt_trans lefx); rewrite ltr_int ltz_addr1.
 Qed.
 
 Lemma intRK : cancel intr floor.
 Proof. by move=> m; apply: floorR_def; rewrite lexx rmorphD ltr_addl ltr01. Qed.
 
-Lemma Rint_int m : (m%:~R : R) \is a Rint.
+Lemma Rint_int m : m%:~R \is a Rint.
 Proof. by rewrite RintE; case: m => n; rewrite ?opprK Rnat_nat ?orbT. Qed.
 
 Lemma RintP x : reflect (exists m, x = m%:~R) (x \is a Rint).
@@ -352,8 +352,7 @@ Qed.
 
 Lemma Rint_def x : x \is a Rint = ((floor x)%:~R == x).
 Proof.
-apply/idP/idP => [/RintP[n ->] | /eqP <-]; last exact: Rint_int.
-by rewrite eqr_int; apply/eqP/floorR_def; rewrite ltr_int ltz_addr1 !lexx.
+by apply/RintP/eqP => [[n ->] | <-]; [rewrite intRK | exists (floor x)].
 Qed.
 
 Lemma floorRK : {in Rint, cancel floor intr}.
@@ -363,7 +362,7 @@ Lemma floorR0 : floor 0 = 0. Proof. exact: intRK 0. Qed.
 Lemma floorR1 : floor 1 = 1. Proof. exact: intRK 1. Qed.
 Hint Resolve floorR0 floorR1 : core.
 
-Lemma floorRD : {in Rint & Num.real, {morph floor : x y / x + y}}.
+Lemma floorRD : {in Rint & Rreal, {morph floor : x y / x + y}}.
 Proof.
 move=> _ y /RintP[m ->] Ry; apply: floorR_def.
 by rewrite -addrA 2!rmorphD /= intRK ler_add2l ltr_add2l floorR_itv.
@@ -380,16 +379,15 @@ Proof. by move=> _ /RintP[m ->]; rewrite -rmorphX !intRK. Qed.
 
 (* ceil and Rint *)
 
-Lemma ceilR_itv x : x \is Num.real -> (ceil x - 1)%:~R < x <= (ceil x)%:~R.
+Lemma ceilR_itv x : x \is Rreal -> (ceil x - 1)%:~R < x <= (ceil x)%:~R.
 Proof.
-move=> Rx.
-by rewrite -opprD !mulrNz ltr_oppl ler_oppr andbC floorR_itv // realN.
+by move=> Rx; rewrite -opprD !mulrNz ltr_oppl ler_oppr andbC floorR_itv ?realN.
 Qed.
 
-Lemma gt_pred_ceilR x : x \is Num.real -> (ceil x - 1)%:~R < x.
+Lemma gt_pred_ceilR x : x \is Rreal -> (ceil x - 1)%:~R < x.
 Proof. by move=> /ceilR_itv /andP[]. Qed.
 
-Lemma le_ceilR x : x \is Num.real -> x <= (ceil x)%:~R.
+Lemma le_ceilR x : x \is Rreal -> x <= (ceil x)%:~R.
 Proof. by move=> /ceilR_itv /andP[]. Qed.
 
 Lemma ceilR_def x m : (m - 1)%:~R < x <= m%:~R -> ceil x = m.
@@ -398,39 +396,29 @@ move=> Hx; apply/eqP; rewrite eqr_oppLR; apply/eqP/floorR_def.
 by rewrite ler_oppr ltr_oppl andbC -!mulrNz opprD opprK.
 Qed.
 
-Lemma ceilR_le_int x n : x \is Num.real -> x <= n%:~R = (ceilR x <= n).
+Lemma ceilR_le_int x n : x \is Rreal -> x <= n%:~R = (ceil x <= n).
 Proof.
 rewrite -realN; move=> /(floorR_ge_int (- n)).
 by rewrite mulrNz ler_oppl opprK => ->; rewrite ler_oppl.
 Qed.
 
-Lemma ceilR_le : {in Num.real &, {homo (@ceilR R) : x y / x <= y}}.
-Proof.
-move=> x y Rx Ry xley.
-by rewrite ler_oppl opprK; apply: floorR_le; rewrite ?realN // ler_oppl opprK.
-Qed.
+Lemma ceilR_le : {homo ceil : x y / x <= y}.
+Proof. by move=> x y lexy; rewrite /ceil ler_opp2 floorR_le ?ler_opp2. Qed.
 
-Lemma floor_ceil_eq x : x \is Num.real -> x \is a Rint = (floorR x == ceilR x).
+Lemma floor_ceil_eq x : x \is Rreal -> x \is a Rint = (floor x == ceil x).
 Proof.
 move=> Rx; apply/idP/idP => [Ix|/eqP fxcy].
   by rewrite -eqr_oppLR floorRN.
-  by rewrite Rint_def; apply/eqP/le_anti; rewrite ge_floorR //= fxcy le_ceilR.
+by rewrite Rint_def; apply/eqP/le_anti; rewrite ge_floorR //= fxcy le_ceilR.
 Qed.
 
 Lemma floor_ceil_neq x :
-  x \is Num.real -> ~~ (x \is a Rint) = (ceil x == floor x + 1).
+  x \is Rreal -> ~~ (x \is a Rint) = (ceil x == floor x + 1).
 Proof.
-move=> Rx; apply/idP/idP => [Ix|cxfy]; last first.
-  apply/negP; rewrite floor_ceil_eq //.
-  move: cxfy => /eqP ->; rewrite addrC -subr_eq subrr eq_sym.
-  apply/negP; exact: oner_neq0.
-apply/eqP/le_anti/andP; split.
-  move: (lt_succ_floorR Rx); rewrite -(ltr_add2r 1%:~R) => xlef.
-  move: (gt_pred_ceilR Rx); rewrite rmorphB /= ltr_subl_addr => clex.
-  by move: (lt_trans clex xlef); rewrite -rmorphD /= ltr_int ltz_addr1.
-rewrite leNgt; apply/negP => clef; move: Ix; apply/negP/negPn; rewrite Rint_def.
-apply/eqP/le_anti; rewrite ge_floorR //=.
-move: clef; rewrite ltz_addr1 -(@ler_int R); apply: le_trans; exact: le_ceilR.
+move=> Rx; apply/idP/eqP => [Ix|cxfy]; last first.
+  by rewrite floor_ceil_eq // cxfy addrC -subr_eq subrr eq_sym oner_neq0.
+apply/ceilR_def; rewrite addrK; move: (floorR_itv Rx).
+by rewrite !le_eqVlt -Rint_def (negPf Ix) /= => /andP [-> ->]; rewrite orbT.
 Qed.
 
 Lemma intRK' : cancel intr ceil.
@@ -446,7 +434,7 @@ Lemma ceilR0 : ceil 0 = 0. Proof. exact: intRK' 0. Qed.
 Lemma ceilR1 : ceil 1 = 1. Proof. exact: intRK' 1. Qed.
 Hint Resolve ceilR0 ceilR1 : core.
 
-Lemma ceilRD : {in Rint & Num.real, {morph ceil : x y / x + y}}.
+Lemma ceilRD : {in Rint & Rreal, {morph ceil : x y / x + y}}.
 Proof.
 move=> _ y /RintP[m ->] Ry; apply: ceilR_def.
 by rewrite -addrA 3!rmorphD /= intRK' ler_add2l ltr_add2l -rmorphD ceilR_itv.
@@ -484,7 +472,7 @@ Canonical Rint_subringPred := SubringPred Rint_subring.
 Lemma Rint_Rnat : {subset Rnat <= Rint}.
 Proof. by move=> ?; rewrite RintE => ->. Qed.
 
-Lemma Rreal_Rint : {subset Rint <= Num.real}. Proof. exact: rpred_Rint. Qed.
+Lemma Rreal_Rint : {subset Rint <= Rreal}. Proof. exact: rpred_Rint. Qed.
 
 Lemma Rint_normK x : x \is a Rint -> `|x| ^+ 2 = x ^+ 2.
 Proof. by move/Rreal_Rint/real_normK. Qed.
@@ -528,10 +516,9 @@ apply: le_trans (_ : `|x| <= _); first by rewrite real_ler_norm ?Rreal_Rint.
 by rewrite -Rint_normK // ler_eexpr // norm_Rint_ge1.
 Qed.
 
-Lemma floorRpK (p : {poly R}) :
-  p \is a polyOver Rint -> map_poly intr (map_poly floor p) = p.
+Lemma floorRpK : {in polyOver Rint, cancel (map_poly floor) (map_poly intr)}.
 Proof.
-move/(all_nthP 0)=> Zp; apply/polyP=> i.
+move=> p /(all_nthP 0) Zp; apply/polyP=> i.
 rewrite coef_map coef_map_id0 //= -[p]coefK coef_poly.
 by case: ifP => [/Zp/floorRK // | _]; rewrite floorR0.
 Qed.
@@ -542,15 +529,12 @@ Proof. by exists (map_poly floor p); rewrite floorRpK. Qed.
 
 (* Relating Cnat and oldCnat. *)
 
-Lemma truncR_old x : Num.trunc x = if 0 <= x then `|floorR x|%N else 0%N.
+Lemma truncR_old x : trunc x = if 0 <= x then `|floor x|%N else 0%N.
 Proof.
 case: ifP => [x_ge0 | x_ge0F]; last first.
   by apply/truncR0Pn; apply/contraFN: x_ge0F; apply/le_trans.
-rewrite -[LHS]absz_nat; congr absz; apply/eqP.
-have /andP[fl_ler lt_fl] := floorR_itv (ger0_real x_ge0).
-have /andP[tr_ler lt_tr] := truncR_itv x_ge0.
-rewrite eq_le -!ltz_addr1 -!(ltr_int R) -PoszD addn1.
-by rewrite (le_lt_trans tr_ler lt_fl) (le_lt_trans fl_ler lt_tr).
+apply/truncR_def; rewrite !pmulrn intS addrC abszE; have/floorR_le := x_ge0.
+by rewrite floorR0 => /normr_idP ->; exact/floorR_itv/ger0_real.
 Qed.
 
 (* predCmod *)
@@ -598,7 +582,7 @@ Section ArchiRealDomainTheory.
 
 Variables (R : archiRealDomainType).
 
-Definition upper_nthrootP (x : R) i : (Num.bound x <= i)%N -> x < 2%:R ^+ i :=
+Definition upper_nthrootP (x : R) i : (bound x <= i)%N -> x < 2%:R ^+ i :=
   @ssrnum.Num.Theory.mc_1_12.upper_nthrootP R x i.
 
 End ArchiRealDomainTheory.
