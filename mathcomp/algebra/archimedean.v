@@ -405,20 +405,12 @@ Qed.
 Lemma ceilR_le : {homo ceil : x y / x <= y}.
 Proof. by move=> x y lexy; rewrite /ceil ler_opp2 floorR_le ?ler_opp2. Qed.
 
-Lemma floor_ceil_eq x : x \is Rreal -> x \is a Rint = (floor x == ceil x).
+Lemma floor_ceil x : x \is Rreal -> ceil x = floor x + (~~ (x \is a Rint)).
 Proof.
-move=> Rx; apply/idP/idP => [Ix|/eqP fxcy].
-  by rewrite -eqr_oppLR floorRN.
-by rewrite Rint_def; apply/eqP/le_anti; rewrite ge_floorR //= fxcy le_ceilR.
-Qed.
-
-Lemma floor_ceil_neq x :
-  x \is Rreal -> ~~ (x \is a Rint) = (ceil x == floor x + 1).
-Proof.
-move=> Rx; apply/idP/eqP => [Ix|cxfy]; last first.
-  by rewrite floor_ceil_eq // cxfy addrC -subr_eq subrr eq_sym oner_neq0.
+case Ix: (x \is a Rint) => Rx /=.
+  by apply/eqP; rewrite addr0 eqr_oppLR floorRN.
 apply/ceilR_def; rewrite addrK; move: (floorR_itv Rx).
-by rewrite !le_eqVlt -Rint_def (negPf Ix) /= => /andP [-> ->]; rewrite orbT.
+by rewrite le_eqVlt -Rint_def Ix /= => /andP[-> /ltW].
 Qed.
 
 Lemma intRK' : cancel intr ceil.
