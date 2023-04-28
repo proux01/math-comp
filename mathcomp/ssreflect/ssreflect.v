@@ -5,6 +5,9 @@ Global Set SsrOldRewriteGoalsOrder.
 Global Set Asymmetric Patterns.
 Global Set Bullet Behavior "None".
 
+Fail.
+Fail.
+
 (******************************************************************************)
 (* Local additions:                                                           *)
 (*                                                                            *)
