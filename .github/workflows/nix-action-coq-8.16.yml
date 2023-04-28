@@ -14,7 +14,7 @@ jobs:
         ref: ${{ env.target_commit }}
     - name: Determine which commit to test
       run: "if [ ${{ github.event_name }} = \"push\" ]; then\n  echo \"tested_commit=${{\
-        \ github.sha }}\" >> $GITHUB_ENV\n  echo \"push\"\nelse\n  mergeable=$(git merge --no-commit --no-ff ${{ github.event.pull_request_target.head.sha }} 2>/dev/null; echo $?; git merge --abort 2>/dev/null || true)\n  echo \"mergeable = $mergeable\"\n  merge_commit=$(git ls-remote ${{\
+        \ github.sha }}\" >> $GITHUB_ENV\n  echo \"push\"\nelse\n  mergeable=$(git merge --no-commit --no-ff ${{ github.event.pull_request.base.sha }} 2>/dev/null; echo $?; git merge --abort 2>/dev/null || true)\n  echo \"mergeable = $mergeable\"\n  merge_commit=$(git ls-remote ${{\
         \ github.event.repository.html_url }} refs/pull/${{ github.event.number }}/merge\
         \ | cut -f1)\n  if [ -z \"$merge_commit\" -o \"x$mergeable\" != \"x0\" ]; then\n    echo \"tested_commit=${{\
         \ github.event.pull_request.head.sha }}\" >> $GITHUB_ENV\n    echo \"not mergeable\"\n  else\n    echo\
