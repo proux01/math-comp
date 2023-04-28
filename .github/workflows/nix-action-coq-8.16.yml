@@ -1,8 +1,5 @@
 jobs:
   QuickChick:
-    needs:
-    - coq
-    - mathcomp-ssreflect
     runs-on: ubuntu-latest
     steps:
     - name: Determine which commit to test
