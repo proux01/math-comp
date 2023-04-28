@@ -3,7 +3,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Determine which commit to test
-      run: "echo \"github evant_name = ${{ github.event_name }}\""
+      run: "if [ ${{ github.event_name }} = \"push\" ]; then\n echo \"tested_commit=${{\
+        \ github.sha }}\" >> $GITHUB_ENV ; echo \"push\"  \nelse\n  merge_commit=$(git ls-remote ${{\
+        \ github.event.repository.html_url }} refs/pull/${{ github.event.number }}/merge\
+        \ | cut -f1)\n  if [ -z \"$merge_commit\" -a "x$mergeable" = "x1" ]; then\n    echo \"tested_commit=${{\
+        \ github.event.pull_request.head.sha }}\" >> $GITHUB_ENV ; echo \"mergeable\"\n  else\n   echo\
+        \ \"tested_commit=$merge_commit\" >> $GITHUB_ENV ; echo \"not mergeable\"  \n  fi\nfi\n"
 name: Nix CI for bundle coq-8.16
 'on':
   pull_request:
