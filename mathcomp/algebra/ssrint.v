@@ -233,8 +233,9 @@ End intZmod.
 
 HB.instance Definition _ := intZmod.Mixin.
 
-HB.instance Definition _ := GRing.isSemiAdditive.Build nat int Posz
-  (erefl, intZmod.PoszD).
+HB.instance Definition _ :=
+  GRing.isSemiAdditive.Build nat^r int (Posz : nat^r -> int)
+    (erefl, intZmod.PoszD).
 
 Local Open Scope ring_scope.
 
@@ -360,8 +361,9 @@ Proof. exact: intZmod.predn_int. Qed.
 
 End intRingTheory.
 
-HB.instance Definition _ := GRing.isMultiplicative.Build nat int Posz
-  (PoszM, erefl).
+HB.instance Definition _ :=
+  GRing.isMultiplicative.Build nat^r int (Posz : nat^r -> int)
+    (PoszM, erefl).
 
 Module intUnitRing.
 Section intUnitRing.

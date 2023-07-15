@@ -6774,15 +6774,22 @@ HB.instance Definition _ := ComUnitRing_isField.Build bool bool_fieldP.
 
 (* Algebraic structure of nat *)
 
-HB.instance Definition _ := isNmodule.Build nat addnA addnC add0n.
-HB.instance Definition _ := Nmodule_isComSemiRing.Build nat
+Definition rnat := nat.
+Canonical alias_nat := Aliased nat rnat.
+Identity Coercion rnat_nat : rnat >-> nat.
+
+HB.instance Definition _ := Choice.on rnat.
+HB.instance Definition _ := isNmodule.Build rnat addnA addnC add0n.
+HB.instance Definition _ := Nmodule_isComSemiRing.Build rnat
   mulnA mulnC mul1n mulnDl mul0n erefl.
 
 HB.instance Definition _ (V : nmodType) (x : V) :=
-  isSemiAdditive.Build nat V (natmul x) (mulr0n x, mulrnDr x).
+  isSemiAdditive.Build nat^r V (natmul x : nat^r -> V)
+    (mulr0n x, mulrnDr x).
 
 HB.instance Definition _ (R : semiRingType) :=
-  isMultiplicative.Build nat R (natmul 1) (natrM R, mulr1n 1).
+  isMultiplicative.Build nat^r R (natmul 1 : nat^r -> R)
+    (natrM R, mulr1n 1).
 
 Lemma natr0E : 0_nat = 0%N. Proof. by []. Qed.
 Lemma natr1E : 1_nat = 1%N. Proof. by []. Qed.
