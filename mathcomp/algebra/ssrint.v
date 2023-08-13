@@ -52,6 +52,15 @@ Declare Scope distn_scope.
 Declare Scope rat_scope.
 
 Reserved Notation "n %:Z" (at level 2, left associativity, format "n %:Z").
+Reserved Notation "x '*~' n" (at level 40, left associativity,
+  format "x  '*~'  n").
+Reserved Notation "x '*~_' T n" (at level 40, left associativity, T at level 2,
+  format "x  '*~_' T  n").
+Reserved Notation "n %:~R" (at level 2, left associativity, format "n %:~R").
+Reserved Notation "n %:~_ T" (at level 2, left associativity, T at level 2,
+  format "n %:~_ T").
+Reserved Notation "x '^_' T y" (at level 30, T at level 2,
+  format "x  '^_' T  y").
 Reserved Notation "n = m :> 'int'"
   (at level 70, m at next level, format "n  =  m  :>  'int'").
 Reserved Notation "n == m :> 'int'"
@@ -528,11 +537,13 @@ Definition intmul (R : zmodType) (x : R) (n : int) := nosimpl
   end.
 
 Notation "*~%R" := (@intmul _) (at level 0, format " *~%R") : fun_scope.
-Notation "x *~ n" := (intmul x n)
-  (at level 40, left associativity, format "x  *~  n") : ring_scope.
+Notation "x *~ n" := (intmul x n) : ring_scope.
+Notation "x *~_ T n" := (@intmul T^r x n) (only parsing) : ring_scope.
+Notation "x *~_ T n" := (@intmul (on_alias T) x n) (only printing) : ring_scope.
 Notation intr := ( *~%R 1).
-Notation "n %:~R" := (1 *~ n)%R
-  (at level 2, left associativity, format "n %:~R")  : ring_scope.
+Notation "n %:~R" := (1 *~ n) : ring_scope.
+Notation "n %:~_ T" := (@intmul T^r 1 n) (only parsing) : ring_scope.
+Notation "n %:~_ T" := (@intmul (on_alias T) 1 n) (only printing) : ring_scope.
 
 Lemma pmulrn (R : zmodType) (x : R) (n : nat) : x *+ n = x *~ n%:Z.
 Proof. by []. Qed.
@@ -1051,6 +1062,8 @@ Definition exprz (R : unitRingType) (x : R) (n : int) := nosimpl
   end.
 
 Notation "x ^ n" := (exprz x n) : ring_scope.
+Notation "x ^_ T n" := (@exprz T^r x n) (only parsing) : ring_scope.
+Notation "x ^_ T n" := (@exprz (on_alias T) x n) (only printing) : ring_scope.
 
 Section ExprzUnitRing.
 

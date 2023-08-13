@@ -519,11 +519,42 @@ Declare Scope ring_scope.
 Declare Scope term_scope.
 Declare Scope linear_ring_scope.
 
+Reserved Notation "T '^r'" (at level 2, left associativity, format "T '^r'").
+Reserved Notation "'0_' T" (at level 0, T at level 2, format "'0_' T").
+Reserved Notation "'1_' T" (at level 0, T at level 2, format "'1_' T").
 Reserved Notation "+%R" (at level 0).
+Reserved Notation "'+%_' T" (at level 0, T at level 2, format "'+%_' T").
 Reserved Notation "-%R" (at level 0).
+Reserved Notation "'-%_' T" (at level 0, T at level 2, format "'-%_' T").
 Reserved Notation "*%R" (at level 0, format " *%R").
+Reserved Notation "'*%_' T" (at level 0, T at level 2, format "'*%_' T").
 Reserved Notation "*:%R" (at level 0, format " *:%R").
+Reserved Notation "'*:%_' T" (at level 0, T at level 2, format "'*:%_' T").
+Reserved Notation "'-_' T x" (at level 35, right associativity, T at level 2,
+  format "'-_' T  x").
+Reserved Notation "x '+_' T y" (at level 50, left associativity, T at level 2,
+  format "x  '+_' T  y").
+Reserved Notation "x '-_' T y" (at level 50, left associativity, T at level 2,
+  format "x  '-_' T  y").
+Reserved Notation "x '*+_' T n" (at level 40, left associativity, T at level 2,
+  format "x  '*+_' T  n").
+Reserved Notation "x '*-_' T n" (at level 40, left associativity, T at level 2,
+  format "x  '*-_' T  n").
+Reserved Notation "x '*_' T y" (at level 40, left associativity, T at level 2,
+  format "x  '*_' T  y").
+Reserved Notation "x '^+_' T y" (at level 29, left associativity, T at level 2,
+  format "x  '^+_' T  y").
+Reserved Notation "x '^-1_' T" (at level 3, left associativity, T at level 2,
+  format "x  '^-1_' T").
+Reserved Notation "x '^-_' T y" (at level 29, left associativity, T at level 2,
+  format "x  '^-_' T  y").
+Reserved Notation "x '/_' T y" (at level 40, left associativity, T at level 2,
+  format "x  /_ T  y").
+Reserved Notation "x '*:_' T y" (at level 40, no associativity, T at level 2,
+  format "x  '*:_' T  y").
 Reserved Notation "n %:R" (at level 2, left associativity, format "n %:R").
+Reserved Notation "n %:_ T" (at level 2, left associativity, T at level 2,
+  format "n %:_ T").
 Reserved Notation "k %:A" (at level 2, left associativity, format "k %:A").
 Reserved Notation "[ 'char' F ]" (at level 0, format "[ 'char'  F ]").
 
@@ -6121,32 +6152,94 @@ Number Notation Idummy_placeholder parse print (via Inatmul
 Set Warnings "via-type-remapping,via-type-mismatch".
 Arguments GRing.one : clear implicits.
 
+(* * Canonical structure to register aliases                                  *)
+(* After registering an alias with                                            *)
+(*   Definition my_T := T.                                                    *)
+(*   Canonical T_alias := Aliased T my_T.                                     *)
+(* this enables defining algebraic structures on [my_T] rather than [T] while *)
+(* being able to use those structures via the notations below, like "x +_T y" *)
+(* See [nat] at the end of the file for an example. *)
+Structure aliased := Aliased {
+  alias_sort :> Type;
+  #[canonical=no] alias : Type
+}.
+
+Notation "T '^r'" := (alias T) : type_scope.
+Notation on_alias T := (reverse_coercion _ T^r) (only parsing).
+
+(* Default instance, to enable using notations "x +_T y" with a structure     *)
+(* directly on [T] without having to declare an alias.                        *)
+Canonical default_alias T := Aliased T T.
+
+Bind Scope ring_scope with alias.
+
 Notation "0" := (@zero _) : ring_scope.
+Notation "0_ T" := (@zero T^r) (only parsing) : ring_scope.
+Notation "0_ T" := (@zero (on_alias T)) (only printing) : ring_scope.
 Notation "-%R" := (@opp _) : ring_scope.
+Notation "-%_ T" := (@opp T^r) (only parsing) : ring_scope.
+Notation "-%_ T" := (@opp (on_alias T)) (only printing) : ring_scope.
 Notation "- x" := (opp x) : ring_scope.
+Notation "-_ T x" := (@opp T^r x) (only parsing) : ring_scope.
+Notation "-_ T x" := (@opp (on_alias T) x) (only printing) : ring_scope.
 Notation "+%R" := (@add _) : fun_scope.
+Notation "+%_ T" := (@add T^r) (only parsing) : fun_scope.
+Notation "+%_ T" := (@add (on_alias T)) (only printing) : fun_scope.
 Notation "x + y" := (add x y) : ring_scope.
+Notation "x +_ T y" := (@add T^r x y) (only parsing) : ring_scope.
+Notation "x +_ T y" := (@add (on_alias T) x y) (only printing) : ring_scope.
 Notation "x - y" := (add x (- y)) : ring_scope.
+Notation "x -_ T y" := (x +_T (-_T y)) (only parsing) : ring_scope.
+Notation "x -_ T y" := (@add (on_alias T) x (@opp (on_alias T) y))
+  (only printing) : ring_scope.
 Notation "x *+ n" := (natmul x n) : ring_scope.
+Notation "x *+_ T n" := (@natmul T^r x n) (only parsing) : ring_scope.
+Notation "x *+_ T n" := (@natmul (on_alias T) x n) (only printing) : ring_scope.
 Notation "x *- n" := (opp (x *+ n)) : ring_scope.
+Notation "x *-_ T n" := (-_T (x *+_T n)) (only parsing) : ring_scope.
+Notation "x *-_ T n" := (@opp (on_alias T) (@natmul (on_alias T) x n))
+  (only printing) : ring_scope.
 Notation "s `_ i" := (seq.nth 0%R s%R i) : ring_scope.
 Notation support := 0.-support.
 
 Notation "1" := (@one _) : ring_scope.
+Notation "1_ T" := (@one T^r) (only parsing) : ring_scope.
+Notation "1_ T" := (@one (on_alias T)) (only printing) : ring_scope.
 Notation "- 1" := (opp 1) : ring_scope.
 
 Notation "n %:R" := (natmul 1 n) : ring_scope.
+Notation "n %:_ T" := (@natmul T^r 1 n) (only parsing) : ring_scope.
+Notation "n %:_ T" := (@natmul (on_alias T) 1 n) (only printing) : ring_scope.
 Notation "[ 'char' R ]" := (char (Phant R)) : ring_scope.
 Notation Frobenius_aut chRp := (Frobenius_aut chRp).
 Notation "*%R" := (@mul _) : fun_scope.
+Notation "*%_ T" := (@mul T^r) (only parsing) : fun_scope.
+Notation "*%_ T" := (@mul (on_alias T)) (only printing) : fun_scope.
 Notation "x * y" := (mul x y) : ring_scope.
+Notation "x *_ T y" := (@mul T^r x y) (only parsing) : ring_scope.
+Notation "x *_ T y" := (@mul (on_alias T) x y) (only printing) : ring_scope.
 Notation "x ^+ n" := (exp x n) : ring_scope.
+Notation "x ^+_ T n" := (@exp T^r x n) (only parsing) : ring_scope.
+Notation "x ^+_ T n" := (@exp (on_alias T) x n) (only printing) : ring_scope.
 Notation "x ^-1" := (inv x) : ring_scope.
+Notation "x ^-1_ T" := (@inv T^r x) (only parsing) : ring_scope.
+Notation "x ^-1_ T" := (@inv (on_alias T) x) (only printing) : ring_scope.
 Notation "x ^- n" := (inv (x ^+ n)) : ring_scope.
+Notation "x ^-_ T n" := (@inv T^r (x ^+_T n)) (only parsing) : ring_scope.
+Notation "x ^-_ T n" := (@inv (on_alias T) (@exp (on_alias T) x n))
+  (only printing) : ring_scope.
 Notation "x / y" := (mul x y^-1) : ring_scope.
+Notation "x /_ T y" := (@mul T^r x y^-1_T) (only parsing) : ring_scope.
+Notation "x /_ T y" := (@mul (on_alias T) x (@inv (on_alias T) y))
+  (only printing) : ring_scope.
 
 Notation "*:%R" := (@scale _ _) : fun_scope.
+Notation "*:%_ T" := (@scale _ T^r) (only parsing) : fun_scope.
+Notation "*:%_ T" := (@scale _ (on_alias T)) (only printing) : fun_scope.
 Notation "a *: m" := (scale a m) : ring_scope.
+Notation "a *:_ T m" := (@scale _ T^r a m) (only parsing) : ring_scope.
+Notation "a *:_ T m" := (@scale _ (on_alias T) a m)
+  (only printing) : ring_scope.
 Notation "k %:A" := (scale k 1) : ring_scope.
 Notation "\0" := (null_fun _) : ring_scope.
 Notation "f \+ g" := (add_fun f g) : ring_scope.
@@ -6691,11 +6784,11 @@ HB.instance Definition _ (V : nmodType) (x : V) :=
 HB.instance Definition _ (R : semiRingType) :=
   isMultiplicative.Build nat R (natmul 1) (natrM R, mulr1n 1).
 
-Lemma natr0E : 0 = 0%N. Proof. by []. Qed.
-Lemma natr1E : 1 = 1%N. Proof. by []. Qed.
-Lemma natn n : n%:R = n.
+Lemma natr0E : 0_nat = 0%N. Proof. by []. Qed.
+Lemma natr1E : 1_nat = 1%N. Proof. by []. Qed.
+Lemma natn n : n%:_nat = n.
 Proof. by elim: n => [//|n IHn]; rewrite -nat1r IHn. Qed.
-Lemma natrDE n m : n + m = (n + m)%N. Proof. by []. Qed.
-Lemma natrME n m : n * m = (n * m)%N. Proof. by []. Qed.
-Lemma natrXE n m : n ^+ m = (n ^ m)%N. Proof. by []. Qed.
+Lemma natrDE (n m : nat) : n +_nat m = (n + m)%N. Proof. by []. Qed.
+Lemma natrME (n m : nat) : n *_nat m = (n * m)%N. Proof. by []. Qed.
+Lemma natrXE (n m : nat) : n ^+_nat m = (n ^ m)%N. Proof. by []. Qed.
 Definition natrE := (natr0E, natr1E, natn, natrDE, natrME, natrXE).
