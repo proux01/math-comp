@@ -1,5 +1,6 @@
 (* (c) Copyright 2006-2016 Microsoft Corporation and Inria.                  *)
 (* Distributed under the terms of CeCILL-B.                                  *)
+From elpi.apps Require Import coercion.
 From HB Require Import structures.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype ssrnat choice seq.
 From mathcomp Require Import fintype finfun bigop order ssralg countalg ssrnum.
@@ -57,6 +58,52 @@ Reserved Notation "x '*~' n" (at level 40, left associativity,
 Reserved Notation "x '*~_' T n" (at level 40, left associativity, T at level 2,
   format "x  '*~_' T  n").
 Reserved Notation "n %:~R" (at level 2, left associativity, format "n %:~R").
+Reserved Notation "x %:~R = y" (only printing, at level 70, x at level 2,
+  format "x %:~R  =  y").
+Reserved Notation "x %:~R <> y" (only printing, at level 70, x at level 2,
+  format "x %:~R  <>  y").
+Reserved Notation "x %:~R == y" (only printing, at level 70, x at level 2,
+  format "x %:~R  ==  y").
+Reserved Notation "x %:~R != y" (only printing, at level 70, x at level 2,
+  format "x %:~R  !=  y").
+Reserved Notation "x %:~R <= y" (only printing, at level 70, x at level 2,
+  format "x %:~R  <=  y").
+Reserved Notation "x %:~R < y" (only printing, at level 70, x at level 2,
+  format "x %:~R  <  y").
+Reserved Notation "x %:~R <= y <= z" (only printing, at level 70,
+  x at level 2, y, z at next level, format "x %:~R  <=  y  <=  z").
+Reserved Notation "x <= y %:~R <= z" (only printing, at level 70, y at level 2,
+  z at next level, format "x  <=  y %:~R  <=  z").
+Reserved Notation "x %:~R <= y %:~R <= z" (only printing, at level 70,
+  x, y at level 2, z at next level, format "x %:~R  <=  y %:~R  <=  z").
+Reserved Notation "x %:~R < y <= z" (only printing, at level 70, x at level 2,
+  y, z at next level, format "x %:~R  <  y  <=  z").
+Reserved Notation "x < y %:~R <= z" (only printing, at level 70, y at level 2,
+  z at next level, format "x  <  y %:~R  <=  z").
+Reserved Notation "x %:~R < y %:~R <= z" (only printing, at level 70,
+  x, y at level 2, z at next level, format "x %:~R  <  y %:~R  <=  z").
+Reserved Notation "x %:~R <= y < z" (only printing, at level 70, x at level 2,
+  y, z at next level, format "x %:~R  <=  y  <  z").
+Reserved Notation "x <= y %:~R < z" (only printing, at level 70, y at level 2,
+  z at next level, format "x  <=  y %:~R  <  z").
+Reserved Notation "x %:~R <= y %:~R < z" (only printing, at level 70,
+  x, y at level 2, z at next level, format "x %:~R  <=  y %:~R  <  z").
+Reserved Notation "x %:~R < y < z" (only printing, at level 70, x at level 2,
+  y, z at next level, format "x %:~R  <  y  <  z").
+Reserved Notation "x < y %:~R < z" (only printing, at level 70, y at level 2,
+  z at next level, format "x  <  y %:~R  <  z").
+Reserved Notation "x %:~R < y %:~R < z" (only printing, at level 70,
+  x, y at level 2, z at next level, format "x %:~R  <  y %:~R  <  z").
+Reserved Notation "x %:~R <= y ?= 'iff' c" (only printing, at level 70,
+  x at level 2, y, c at next level,
+  format "x %:~R '[hv'  <=  y '/'  ?=  iff  c ']'").
+Reserved Notation "x %:~R < y ?<= 'if' c" (only printing, at level 70,
+  x at level 2, y, c at next level,
+  format "x %:~R '[hv'  <  y '/'  ?<=  if  c ']'").
+Reserved Notation "x %:~R >=< y" (only printing, at level 70, no associativity,
+  x at level 2, format "x %:~R  >=<  y").
+Reserved Notation "x %:~R >< y" (only printing, at level 70, no associativity,
+  x at level 2, format "x %:~R  ><  y").
 Reserved Notation "n %:~_ T" (at level 2, left associativity, T at level 2,
   format "n %:~_ T").
 Reserved Notation "x '^_' T y" (at level 30, T at level 2,
@@ -538,6 +585,35 @@ Notation "x *~_ T n" := (@intmul T^r x n) (only parsing) : ring_scope.
 Notation "x *~_ T n" := (@intmul (on_alias T) x n) (only printing) : ring_scope.
 Notation intr := ( *~%R 1).
 Notation "n %:~R" := (1 *~ n) : ring_scope.
+Notation "n" := (n%:~R)%R (only printing, n name) : ring_scope.
+Notation "x %:~R = y" := (x%:~R = y) (only printing) : ring_scope.
+Notation "x %:~R <> y" := (x%:~R <> y) (only printing) : ring_scope.
+Notation "x %:~R == y" := (x%:~R == y) (only printing) : ring_scope.
+Notation "x %:~R != y" := (x%:~R != y) (only printing) : ring_scope.
+Notation "x %:~R <= y" := (x%:~R <= y) (only printing) : ring_scope.
+Notation "x %:~R < y" := (x%:~R < y) (only printing) : ring_scope.
+Notation "x %:~R <= y <= z" := (x%:~R <= y <= z) (only printing) : ring_scope.
+Notation "x <= y %:~R <= z" := (x <= y%:~R <= z) (only printing) : ring_scope.
+Notation "x %:~R <= y %:~R <= z" := (x%:~R <= y%:~R <= z) (only printing)
+  : ring_scope.
+Notation "x %:~R < y <= z" := (x%:~R < y <= z) (only printing) : ring_scope.
+Notation "x < y %:~R <= z" := (x < y%:~R <= z) (only printing) : ring_scope.
+Notation "x %:~R < y %:~R <= z" := (x%:~R < y%:~R <= z) (only printing)
+  : ring_scope.
+Notation "x %:~R <= y < z" := (x%:~R <= y < z) (only printing) : ring_scope.
+Notation "x <= y %:~R < z" := (x <= y%:~R < z) (only printing) : ring_scope.
+Notation "x %:~R <= y %:~R < z" := (x%:~R <= y%:~R < z) (only printing)
+  : ring_scope.
+Notation "x %:~R < y < z" := (x%:~R < y < z) (only printing) : ring_scope.
+Notation "x < y %:~R < z" := (x < y%:~R < z) (only printing) : ring_scope.
+Notation "x %:~R < y %:~R < z" := (x%:~R < y%:~R < z) (only printing)
+  : ring_scope.
+Notation "x %:~R <= y ?= 'iff' C" := (x%:~R <= y ?= iff C) (only printing)
+  : ring_scope.
+Notation "x %:~R < y ?<= 'if' C" := (x%:~R < y ?<= if C) (only printing)
+  : ring_scope.
+Notation "x %:~R >=< y" := (x%:~R >=< y) (only printing) : ring_scope.
+Notation "x %:~R >< y" := (x%:~R >< y) (only printing) : ring_scope.
 Notation "n %:~_ T" := (@intmul T^r 1 n) (only parsing) : ring_scope.
 Notation "n %:~_ T" := (@intmul (on_alias T) 1 n) (only printing) : ring_scope.
 
@@ -1918,3 +1994,12 @@ Notation Znat := (Num.Def.nat_num : qualifier 1 int) (only parsing).
 Notation Znat_def := mc_2_0.Znat_def (only parsing).
 #[deprecated(since="mathcomp 2.1.0", note="Require archimedean.v.")]
 Notation ZnatP := mc_2_0.ZnatP (only parsing).
+
+Elpi Accumulate coercion lp:{{
+coercion _ N Inferred Expected Res :-
+  coq.unify-eq {{ int }} Inferred ok, !,
+  coq.unify-eq {{ GRing.SemiRing.sort lp:R }} Expected ok, !,
+  coq.unify-eq {{ GRing.Zmodule.sort lp:V }} Expected ok, !,
+  Res = {{ @intmul lp:V (@GRing.one lp:R) lp:N }}.
+}}.
+Elpi Typecheck coercion.
