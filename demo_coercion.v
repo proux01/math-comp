@@ -1,4 +1,4 @@
-From mathcomp Require Import all_ssreflect ssralg ssrnum ssrint.
+From mathcomp Require Import all_ssreflect ssralg ssrnum ssrint rat.
 
 Import GRing.Theory.
 
@@ -55,3 +55,31 @@ Check n%:~R <= x.
 Check n%:~R < x.
 
 End DemoCoercionsIntmul.
+
+Section DemoCoercionsRatr.
+
+Variable F : numFieldType.
+
+Variables (x : F) (r : rat).
+
+Lemma test_rat : r + x + 1 = x + ratr (r + 1).
+Proof.
+(* r + x + 1 = x + ratr (r + 1) *)
+rewrite raddfD/=.
+(* r + x + 1 = x + (ratr r + ratr 1) *)
+rewrite rmorph1.
+(* r + x + 1 = x + (ratr r + 1) *)
+rewrite fmorph_rat.
+(* r + x + 1 = x + (r + 1) *)
+by rewrite addrCA addrA.
+Qed.
+
+(* but [ratr] needs to be printed on LHS of comparisons *)
+Check ratr r = x.
+Check ratr r <> x.
+Check ratr r == x.
+Check ratr r != x.
+Check ratr r <= x.
+Check ratr r < x.
+
+End DemoCoercionsRatr.

@@ -1,5 +1,6 @@
 (* (c) Copyright 2006-2016 Microsoft Corporation and Inria.                  *)
 (* Distributed under the terms of CeCILL-B.                                  *)
+From elpi.apps Require Import coercion.
 From HB Require Import structures.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype ssrnat seq choice.
 From mathcomp Require Import fintype bigop order ssralg countalg div ssrnum.
@@ -30,6 +31,52 @@ Unset Printing Implicit Defensive.
 
 Reserved Notation "[ 'rat' x // y ]" (format "[ 'rat'  x  //  y ]", at level 0).
 Reserved Notation "n %:Q" (at level 2, left associativity, format "n %:Q").
+Reserved Notation "'ratr' x = y" (only printing, at level 70, x at level 2,
+  format "'ratr'  x  =  y").
+Reserved Notation "'ratr' x <> y" (only printing, at level 70, x at level 2,
+  format "'ratr'  x  <>  y").
+Reserved Notation "'ratr' x == y" (only printing, at level 70, x at level 2,
+  format "'ratr'  x  ==  y").
+Reserved Notation "'ratr' x != y" (only printing, at level 70, x at level 2,
+  format "'ratr'  x  !=  y").
+Reserved Notation "'ratr' x <= y" (only printing, at level 70, x at level 2,
+  format "'ratr'  x  <=  y").
+Reserved Notation "'ratr' x < y" (only printing, at level 70, x at level 2,
+  format "'ratr'  x  <  y").
+Reserved Notation "'ratr' x <= y <= z" (only printing, at level 70,
+  x at level 2, y, z at next level, format "'ratr'  x  <=  y  <=  z").
+Reserved Notation "x <= 'ratr'  y <= z" (only printing, at level 70,
+  y at level 2, z at next level, format "x  <=  'ratr'  y  <=  z").
+Reserved Notation "'ratr' x <= 'ratr'  y <= z" (only printing, at level 70,
+  x, y at level 2, z at next level, format "'ratr'  x  <=  'ratr'  y  <=  z").
+Reserved Notation "'ratr' x < y <= z" (only printing, at level 70, x at level 2,
+  y, z at next level, format "'ratr'  x  <  y  <=  z").
+Reserved Notation "x < 'ratr'  y <= z" (only printing, at level 70,
+  y at level 2, z at next level, format "x  <  'ratr'  y  <=  z").
+Reserved Notation "'ratr' x < 'ratr'  y <= z" (only printing, at level 70,
+  x, y at level 2, z at next level, format "'ratr'  x  <  'ratr'  y  <=  z").
+Reserved Notation "'ratr' x <= y < z" (only printing, at level 70, x at level 2,
+  y, z at next level, format "'ratr'  x  <=  y  <  z").
+Reserved Notation "x <= 'ratr'  y < z" (only printing, at level 70,
+  y at level 2, z at next level, format "x  <=  'ratr'  y  <  z").
+Reserved Notation "'ratr' x <= 'ratr'  y < z" (only printing, at level 70,
+  x, y at level 2, z at next level, format "'ratr'  x  <=  'ratr'  y  <  z").
+Reserved Notation "'ratr' x < y < z" (only printing, at level 70, x at level 2,
+  z at next level, format "'ratr'  x  <  y  <  z").
+Reserved Notation "x < 'ratr'  y < z" (only printing, at level 70, y at level 2,
+  z at next level, format "x  <  'ratr'  y  <  z").
+Reserved Notation "'ratr' x < 'ratr'  y < z" (only printing, at level 70,
+  x, y at level 2, z at next level, format "'ratr'  x  <  'ratr'  y  <  z").
+Reserved Notation "'ratr' x <= y ?= 'iff' c" (only printing, at level 70,
+  x at level 2, y, c at next level,
+  format "'ratr'  x '[hv'  <=  y '/'  ?=  iff  c ']'").
+Reserved Notation "'ratr' x < y ?<= 'if' c" (only printing, at level 70,
+  x at level 2, y, c at next level,
+  format "'ratr'  x '[hv'  <  y '/'  ?<=  if  c ']'").
+Reserved Notation "'ratr' x >=< y" (only printing, at level 70, x at level 2,
+  no associativity, format "'ratr'  x  >=<  y").
+Reserved Notation "'ratr' x >< y" (only printing, at level 70, x at level 2,
+  no associativity, format "'ratr'  x  ><  y").
 
 Local Open Scope ring_scope.
 Local Notation sgr := Num.sg.
@@ -1024,3 +1071,46 @@ Notation QintP := mc_2_0.QintP (only parsing).
 Notation Qnat_def := mc_2_0.Qnat_def (only parsing).
 #[deprecated(since="mathcomp 2.1.0", note="Use natrP instead.")]
 Notation QnatP := mc_2_0.QnatP (only parsing).
+
+Notation "x" := (ratr x) (only printing, x name) : ring_scope.
+Notation "'ratr' x = y" := (ratr x = y) (only printing) : ring_scope.
+Notation "'ratr' x <> y" := (ratr x <> y) (only printing) : ring_scope.
+Notation "'ratr' x == y" := (ratr x == y) (only printing) : ring_scope.
+Notation "'ratr' x != y" := (ratr x != y) (only printing) : ring_scope.
+Notation "'ratr' x <= y" := (ratr x <= y) (only printing) : ring_scope.
+Notation "'ratr' x < y" := (ratr x < y) (only printing) : ring_scope.
+Notation "'ratr' x <= y <= z" := (ratr x <= y <= z) (only printing)
+  : ring_scope.
+Notation "x <= 'ratr' y <= z" := (x <= ratr y <= z) (only printing)
+  : ring_scope.
+Notation "'ratr' x <= 'ratr' y <= z" := (ratr x <= ratr y <= z) (only printing)
+  : ring_scope.
+Notation "'ratr' x < y <= z" := (ratr x < y <= z) (only printing) : ring_scope.
+Notation "x < 'ratr' y <= z" := (x < ratr y <= z) (only printing) : ring_scope.
+Notation "'ratr' x < 'ratr' y <= z" := (ratr x < ratr y <= z) (only printing)
+  : ring_scope.
+Notation "'ratr' x <= y < z" := (ratr x <= y < z) (only printing) : ring_scope.
+Notation "x <= 'ratr' y < z" := (x <= ratr y < z) (only printing) : ring_scope.
+Notation "'ratr' x <= 'ratr' y < z" := (ratr x <= ratr y < z) (only printing)
+  : ring_scope.
+Notation "'ratr' x < y < z" := (ratr x < y < z) (only printing) : ring_scope.
+Notation "x < 'ratr' y < z" := (x < ratr y < z) (only printing) : ring_scope.
+Notation "'ratr' x < 'ratr' y < z" := (ratr x < ratr y < z) (only printing)
+  : ring_scope.
+Notation "'ratr' x <= y ?= 'iff' C" := (ratr x <= y ?= iff C) (only printing)
+  : ring_scope.
+Notation "'ratr' x < y ?<= 'if' C" := (ratr x < y ?<= if C) (only printing)
+  : ring_scope.
+Notation "'ratr' x >=< y" := (ratr x >=< y) (only printing) : ring_scope.
+Notation "'ratr' x >< y" := (ratr x >< y) (only printing) : ring_scope.
+
+Elpi Accumulate coercion lp:{{
+coercion _ X Inferred Expected Res :-
+  coq.unify-eq {{ rat }} Inferred ok, !,
+  % Cyril: Although ratr only require a UnitRing, we look for a Field
+  % to avoid introducing a non injective coercion
+  coq.unify-eq {{ GRing.Field.sort lp:F_ }} Expected ok, !,
+  coq.unify-eq {{ GRing.UnitRing.sort lp:R }} Expected ok, !,  % TODO: use coercion to build R from F
+  Res = {{ @ratr lp:R lp:X }}.
+}}.
+Elpi Typecheck coercion.
