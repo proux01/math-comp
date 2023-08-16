@@ -76,9 +76,7 @@ Local Open Scope int_scope.
 
 (* Defining int *)
 Variant int : Set := Posz of nat | Negz of nat.
-(* This must be deferred to module DistInt to work around the design flaws of *)
-(* the Coq module system.                                                     *)
-(* Coercion Posz : nat >-> int. *)
+Coercion Posz : nat >-> int.
 
 Notation "n %:Z" := (Posz n) (only parsing) : int_scope.
 Notation "n %:Z" := (Posz n) (only parsing) : ring_scope.
@@ -148,8 +146,6 @@ Local Notation "x + y" := (addz x y) : int_scope.
 Local Notation "x - y" := (x + - y) : int_scope.
 
 Lemma PoszD : {morph Posz : m n / (m + n)%N >-> m + n}. Proof. by []. Qed.
-
-Local Coercion Posz : nat >-> int.
 
 Lemma NegzE (n : nat) : Negz n = - n.+1. Proof. by []. Qed.
 
@@ -241,8 +237,6 @@ Local Open Scope ring_scope.
 
 Section intZmoduleTheory.
 
-Local Coercion Posz : nat >-> int.
-
 Lemma PoszD : {morph Posz : n m / (n + m)%N >-> n + m}. Proof. by []. Qed.
 
 Lemma NegzE (n : nat) : Negz n = -(n.+1)%:Z. Proof. by []. Qed.
@@ -284,8 +278,6 @@ Notation oppz_add := oppzD.
 
 Module intRing.
 Section intRing.
-
-Local Coercion Posz : nat >-> int.
 
 Definition mulz (m n : int) :=
   match m, n with
@@ -350,7 +342,6 @@ HB.instance Definition _ := intRing.comMixin.
 Section intRingTheory.
 
 Implicit Types m n : int.
-Local Coercion Posz : nat >-> int.
 
 Lemma PoszM : {morph Posz : n m / (n * m)%N >-> n * m}. Proof. by []. Qed.
 
@@ -368,7 +359,6 @@ HB.instance Definition _ :=
 Module intUnitRing.
 Section intUnitRing.
 Implicit Types m n : int.
-Local Coercion Posz : nat >-> int.
 
 Definition unitz := [qualify a n : int | (n == 1) || (n == -1)].
 Definition invz n : int := n.
@@ -412,7 +402,6 @@ Local Notation "`| m |" := (absz m) : nat_scope.
 Module intOrdered.
 Section intOrdered.
 Implicit Types m n p : int.
-Local Coercion Posz : nat >-> int.
 
 Local Notation normz m := (absz m)%:Z.
 
@@ -474,7 +463,6 @@ HB.instance Definition _ := intOrdered.Mixin.
 
 Section intOrderedTheory.
 
-Local Coercion Posz : nat >-> int.
 Implicit Types m n p : nat.
 Implicit Types x y z : int.
 
@@ -583,7 +571,6 @@ Section ZintLmod.
 
 Definition zmodule (M : Type) : Type := M.
 Local Notation "M ^z" := (zmodule M) (at level 2, format "M ^z") : type_scope.
-Local Coercion Posz : nat >-> int.
 
 Variable M : zmodType.
 
@@ -686,7 +673,6 @@ Proof. by rewrite pmulrn intz. Qed.
 
 Section RintMod.
 
-Local Coercion Posz : nat >-> int.
 Variable R : ringType.
 
 Implicit Types m n : int.
@@ -739,7 +725,6 @@ Section LMod.
 
 Variable R : ringType.
 Variable V : (lmodType R).
-Local Coercion Posz : nat >-> int.
 
 Implicit Types m n : int.
 Implicit Types x y z : R.
@@ -764,7 +749,6 @@ Lemma mulrz_int (M : zmodType) (n : int) (x : M) : x *~ n%:~R = x *~ n.
 Proof. by rewrite -scalezrE scaler_int. Qed.
 
 Section MorphTheory.
-Local Coercion Posz : nat >-> int.
 Section Additive.
 Variables (U V : zmodType) (f : {additive U -> V}).
 
@@ -1072,7 +1056,6 @@ Section ExprzUnitRing.
 Variable R : unitRingType.
 Implicit Types x y : R.
 Implicit Types m n : int.
-Local Coercion Posz : nat >-> int.
 
 Lemma exprnP x (n : nat) : x ^+ n = x ^ n. Proof. by []. Qed.
 
@@ -1182,7 +1165,6 @@ Section Exprz_Zint_UnitRing.
 Variable R : unitRingType.
 Implicit Types x y : R.
 Implicit Types m n : int.
-Local Coercion Posz : nat >-> int.
 
 Lemma exprz_pMzl x m n : 0 <= n -> (x *~ m) ^ n = x ^ n *~ (m ^ n).
 Proof.
@@ -1225,7 +1207,6 @@ Section ExprzIdomain.
 Variable R : idomainType.
 Implicit Types x y : R.
 Implicit Types m n : int.
-Local Coercion Posz : nat >-> int.
 
 Lemma expfz_eq0 x n : (x ^ n == 0) = (n != 0) && (x == 0).
 Proof.
@@ -1249,7 +1230,6 @@ Section ExprzField.
 Variable F : fieldType.
 Implicit Types x y : F.
 Implicit Types m n : int.
-Local Coercion Posz : nat >-> int.
 
 Lemma expfzDr x m n : x != 0 -> x ^ (m + n) = x ^ m * x ^ n.
 Proof. by move=> hx; rewrite exprzDr ?unitfE. Qed.
@@ -1281,7 +1261,6 @@ Section ExprzOrder.
 Variable R : realFieldType.
 Implicit Types x y : R.
 Implicit Types m n : int.
-Local Coercion Posz : nat >-> int.
 
 (* ler and exprz *)
 Lemma exprz_ge0 n x (hx : 0 <= x) : (0 <= x ^ n).
@@ -1450,7 +1429,6 @@ Section Sgz.
 Variable R : numDomainType.
 Implicit Types x y z : R.
 Implicit Types m n p : int.
-Local Coercion Posz : nat >-> int.
 
 Definition sgz x : int := if x == 0 then 0 else if x < 0 then -1 else 1.
 
@@ -1544,7 +1522,6 @@ Section SgzReal.
 Variable R : realDomainType.
 Implicit Types x y z : R.
 Implicit Types m n p : int.
-Local Coercion Posz : nat >-> int.
 
 Lemma sgz_cp0 x :
   ((sgz x == 1) = (0 < x)) *
@@ -1640,7 +1617,6 @@ Section Absz.
 
 Implicit Types m n p : int.
 Open Scope nat_scope.
-Local Coercion Posz : nat >-> int.
 
 Lemma absz_nat (n : nat) : `|n| = n. Proof. by []. Qed.
 
@@ -1733,7 +1709,6 @@ Notation "m - n" :=
     (@GRing.opp int_zmodType (n%N : int))) : distn_scope.
 Arguments absz m%distn_scope.
 Notation "`| m |" := (absz m) : nat_scope.
-Coercion Posz : nat >-> int.
 
 Section Distn.
 
