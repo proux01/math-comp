@@ -36,13 +36,13 @@ Local Notation sgr := Num.sg.
 
 Record rat : Set := Rat {
   valq : (int * int);
-  _ : (0 < valq.2) && coprime `|valq.1| `|valq.2|
+  _ : (0_int < valq.2) && coprime `|valq.1| `|valq.2|
 }.
 
 Bind Scope ring_scope with rat.
 Delimit Scope rat_scope with Q.
 
-Definition ratz (n : int) := @Rat (n, 1) (coprimen1 _).
+Definition ratz (n : int^r) := @Rat (n, 1_int) (coprimen1 _).
 (* Coercion ratz (n : int) := @Rat (n, 1) (coprimen1 _). *)
 
 Definition rat_isSub := Eval hnf in [isSub for valq].
@@ -53,19 +53,19 @@ HB.instance Definition _ := [Countable of rat by <:].
 Definition numq x := nosimpl ((valq x).1).
 Definition denq x := nosimpl ((valq x).2).
 
-Lemma denq_gt0 x : 0 < denq x.
+Lemma denq_gt0 x : 0_int < denq x.
 Proof. by rewrite /denq; case: x=> [[a b] /= /andP []]. Qed.
 #[global] Hint Resolve denq_gt0 : core.
 
 Definition denq_ge0 x := ltW (denq_gt0 x).
 
-Lemma denq_lt0 x : (denq x < 0) = false. Proof. by rewrite lt_gtF. Qed.
+Lemma denq_lt0 x : (denq x < 0_int) = false. Proof. by rewrite lt_gtF. Qed.
 
-Lemma denq_neq0 x : denq x != 0.
+Lemma denq_neq0 x : denq x != 0_int.
 Proof. by rewrite /denq gt_eqF ?denq_gt0. Qed.
 #[global] Hint Resolve denq_neq0 : core.
 
-Lemma denq_eq0 x : (denq x == 0) = false.
+Lemma denq_eq0 x : (denq x == 0_int) = false.
 Proof. exact: negPf (denq_neq0 _). Qed.
 
 Lemma coprime_num_den x : coprime `|numq x| `|denq x|.
@@ -74,13 +74,13 @@ Proof. by rewrite /numq /denq; case: x=> [[a b] /= /andP []]. Qed.
 Fact RatK x P : @Rat (numq x, denq x) P = x.
 Proof. by move: x P => [[a b] P'] P; apply: val_inj. Qed.
 
-Definition fracq_subdef x :=
-  if x.2 != 0 then  let g := gcdn `|x.1| `|x.2| in
+Definition fracq_subdef x : int^r * int^r :=
+  if x.2 != 0 then let g := gcdn `|x.1| `|x.2| in
     ((-1) ^ ((x.2 < 0) (+) (x.1 < 0)) * (`|x.1| %/ g)%:Z, (`|x.2| %/ g)%:Z)
- else (0, 1).
+  else (0, 1).
 Arguments fracq_subdef /.
 
-Definition fracq_opt_subdef (x : int * int) :=
+Definition fracq_opt_subdef (x : int^r * int^r) :=
   if (0 < x.2) && coprime `|x.1| `|x.2| then x else fracq_subdef x.
 
 Lemma fracq_opt_subdefE x : fracq_opt_subdef x = fracq_subdef x.
@@ -120,7 +120,8 @@ Qed.
 (* independent from the input of fracq. This ensure reflexivity of any     *)
 (* computation involving rationals as long as all operators use fracq.     *)
 (* As a consequence val (fracq x) = fracq_opt_subdef (fracq_opt_subdef x)) *)
-Definition fracq '((n', d')) : rat :=
+Definition fracq (nd : int^r * int^r) : rat :=
+  let '(n', d') := nd in
   match d', n' with
   | Posz 0 as d, _ as n => Rat (fracq_subproof (1, 0))
   | _ as d, Posz _ as n | _ as d, _ as n =>
@@ -144,7 +145,7 @@ Definition parse (x : Number.number) : option Irat :=
   let parse i f :=
     match i with
     | Decimal.Pos i => parse_pos i f
-    | Decimal.Neg i => let (n, d) := parse_pos i f in ((- n)%R, d)
+    | Decimal.Neg i => let (n, d) := parse_pos i f in ((-_int n)%R, d)
     end in
   match x with
   | Number.Decimal (Decimal.Decimal i f) =>
@@ -227,7 +228,8 @@ move: Pnd; rewrite /coprime /fracq /= => /andP[] hd -/eqP hnd.
 by rewrite lt_gtF ?gt_eqF //= hnd !divn1 mulz_sign_abs abszE gtr0_norm.
 Qed.
 
-Definition scalq '(n, d) := sgr d * (gcdn `|n| `|d|)%:Z.
+Definition scalq (nd : int^r * int^r) :=
+  let '(n, d) := nd in sgr d * (gcdn `|n| `|d|)%:Z.
 Lemma scalq_def x : scalq x = sgr x.2 * (gcdn `|x.1| `|x.2|)%:Z.
 Proof. by case: x. Qed.
 
@@ -272,9 +274,9 @@ Qed.
 
 Fact fracq0  x : fracq (x, 0) = zeroq. Proof. exact/eqP. Qed.
 
-Variant fracq_spec (x : int * int) : int * int -> rat -> Type :=
+Variant fracq_spec (x : int^r * int^r) : int^r * int^r -> rat -> Type :=
   | FracqSpecN of x.2 = 0 : fracq_spec x (x.1, 0) zeroq
-  | FracqSpecP k fx of k != 0 : fracq_spec x (k * numq fx, k * denq fx) fx.
+  | FracqSpecP k fx of k != 0_int : fracq_spec x (k * numq fx, k * denq fx) fx.
 
 Fact fracqP x : fracq_spec x x (fracq x).
 Proof.
@@ -289,14 +291,16 @@ rewrite -val_eqE [val x]surjective_pairing [val y]surjective_pairing /=.
 by rewrite xpair_eqE.
 Qed.
 
-Lemma sgr_denq x : sgr (denq x) = 1. Proof. by apply/eqP; rewrite sgr_cp0. Qed.
+Lemma sgr_denq x : sgr (denq x : int^r) = 1.
+Proof. by apply/eqP; rewrite sgr_cp0. Qed.
 
-Lemma normr_denq x : `|denq x| = denq x. Proof. by rewrite gtr0_norm. Qed.
+Lemma normr_denq x : `|denq x : int^r| = denq x.
+Proof. by rewrite gtr0_norm. Qed.
 
 Lemma absz_denq x : `|denq x|%N = denq x :> int.
 Proof. by rewrite abszE normr_denq. Qed.
 
-Lemma rat_eq x y : (x == y) = (numq x * denq y == numq y * denq x).
+Lemma rat_eq x y : (x == y) = (numq x *_int denq y == numq y *_int denq x).
 Proof.
 symmetry; rewrite rat_eqE andbC.
 have [->|] /= := eqVneq (denq _); first by rewrite (inj_eq (mulIf _)).
@@ -307,12 +311,12 @@ rewrite -(@Gauss_dvdr _ `|numq y|) 1?coprime_sym ?coprime_num_den //.
 by rewrite -!abszM hxy -{1}hxy !abszM !dvdn_mull ?dvdnn.
 Qed.
 
-Fact fracq_eq x y : x.2 != 0 -> y.2 != 0 ->
+Fact fracq_eq (x y : int^r * int^r) : x.2 != 0 -> y.2 != 0 ->
   (fracq x == fracq y) = (x.1 * y.2 == y.1 * x.2).
 Proof.
 case: fracqP=> //= u fx u_neq0 _; case: fracqP=> //= v fy v_neq0 _; symmetry.
 rewrite [eqbRHS]mulrC mulrACA [eqbRHS]mulrACA.
-by rewrite [denq _ * _]mulrC (inj_eq (mulfI _)) ?mulf_neq0 // rat_eq.
+by rewrite [denq _ *_int _]mulrC (inj_eq (mulfI _)) ?mulf_neq0 // rat_eq.
 Qed.
 
 Fact fracq_eq0 x : (fracq x == zeroq) = (x.1 == 0) || (x.2 == 0).
@@ -322,7 +326,7 @@ move: x=> [n d] /=; have [->|d0] := eqVneq d 0.
 by rewrite -[zeroq]valqK orbF fracq_eq ?d0 //= mulr1 mul0r.
 Qed.
 
-Fact fracqMM x n d : x != 0 -> fracq (x * n, x * d) = fracq (n, d).
+Fact fracqMM (x n d : int^r) : x != 0 -> fracq (x * n, x * d) = fracq (n, d).
 Proof.
 move=> x_neq0; apply/eqP.
 have [->|d_neq0] := eqVneq d 0; first by rewrite mulr0 !fracq0.
@@ -339,7 +343,7 @@ Qed.
 (* Moreover we optimize addition when one or both arguments are integers,     *)
 (* in which case we presimplify the output, this shortens the size of the hnf *)
 (* of terms of the form N%:Q when N is a concrete natural number.             *)
-Definition addq_subdef (x y : int * int) :=
+Definition addq_subdef (x y : int^r * int^r) :=
   let: (x1, x2) := x in
   let: (y1, y2) := y in
   match x2, y2 with
@@ -365,7 +369,7 @@ case: x y => [x1 [[|[|x2]]|x2]] [y1 [[|[|y2]]|y2]]/=; rewrite ?Monoid.simpm//.
 by case: x1 y1 => [[|[|m]]|m] [[|[|n]]|n]; rewrite ?Monoid.simpm// -PoszD addn1.
 Qed.
 
-Definition oppq_subdef (x : int * int) := (- x.1, x.2).
+Definition oppq_subdef (x : int^r * int^r) := (- x.1, x.2).
 Definition oppq '(Rat x xP) := fracq (oppq_subdef x).
 Definition oppq_def x : oppq x = fracq (oppq_subdef (valq x)).
 Proof. by case: x. Qed.
@@ -379,12 +383,12 @@ move=> x y z; rewrite !addq_subdefE.
 by rewrite !mulrA !mulrDl addrA ![_ * x.2]mulrC !mulrA.
 Qed.
 
-Fact addq_frac x y : x.2 != 0 -> y.2 != 0 ->
+Fact addq_frac (x y : int^r * int^r) : x.2 != 0 -> y.2 != 0 ->
   (addq (fracq x) (fracq y)) = fracq (addq_subdef x y).
 Proof.
 case: fracqP => // u fx u_neq0 _; case: fracqP => // v fy v_neq0 _.
 rewrite addq_def !addq_subdefE /=.
-rewrite ![(_ * numq _) * _]mulrACA [(_ * denq _) * _]mulrACA.
+rewrite ![(_ *_int numq _) * _]mulrACA [(_ *_int denq _) * _]mulrACA.
 by rewrite [v * _]mulrC -mulrDr fracqMM ?mulf_neq0.
 Qed.
 
@@ -425,7 +429,7 @@ Qed.
 
 HB.instance Definition _ := GRing.isZmodule.Build rat addqA addqC add0q addNq.
 
-Definition mulq_subdef (x y : int * int) :=
+Definition mulq_subdef (x y : int^r * int^r) :=
   let: (x1, x2) := x in
   let: (y1, y2) := y in
   match x2, y2 with
@@ -449,7 +453,7 @@ Proof. by move=> x y; rewrite !mulq_subdefE mulrC [_ * x.2]mulrC. Qed.
 Fact mul_subdefA : associative mulq_subdef.
 Proof. by move=> x y z; rewrite !mulq_subdefE !mulrA. Qed.
 
-Definition invq_subdef (x : int * int) := (x.2, x.1).
+Definition invq_subdef (x : int^r * int^r) := (x.2, x.1).
 Definition invq '(Rat x xP) := fracq (invq_subdef x).
 Lemma invq_def x : invq x = fracq (invq_subdef (valq x)).
 Proof. by case: x. Qed.
@@ -466,7 +470,7 @@ Qed.
 Fact ratzM : {morph ratz : x y / x * y >-> mulq x y}.
 Proof. by move=> x y /=; rewrite !ratz_frac //= !mulr1. Qed.
 
-Fact invq_frac x :
+Fact invq_frac (x : int^r * int^r) :
   x.1 != 0 -> x.2 != 0 -> invq (fracq x) = fracq (invq_subdef x).
 Proof. by rewrite invq_def; case: (fracqP x) => // k ? k0; rewrite fracqMM. Qed.
 
@@ -488,8 +492,8 @@ Fact mulq_addl : left_distributive mulq addq.
 Proof.
 move=> x y z; rewrite -[x]valqK -[y]valqK -[z]valqK /=.
 rewrite !(mulq_frac, addq_frac, mulq_subdefE, addq_subdefE) ?mulf_neq0 ?denq_neq0 //=.
-apply/eqP; rewrite fracq_eq ?mulf_neq0 ?denq_neq0 //= !mulrDl; apply/eqP.
-by rewrite !mulrA ![_ * (valq z).1]mulrC !mulrA ![_ * (valq x).2]mulrC !mulrA.
+apply/eqP; rewrite fracq_eq ?mulf_neq0 ?denq_neq0//= !mulrDl; apply/eqP.
+by rewrite !mulrA ![_ *_int (valq z).1]mulrC !mulrA ![_ *_int (valq x).2]mulrC !mulrA.
 Qed.
 
 Fact nonzero1q : oneq != zeroq. Proof. by []. Qed.
@@ -508,14 +512,14 @@ Fact invq0 : invq 0 = 0. Proof. exact/eqP. Qed.
 
 HB.instance Definition _ := GRing.ComRing_isField.Build rat mulVq invq0.
 
-Lemma numq_eq0 x : (numq x == 0) = (x == 0).
+Lemma numq_eq0 x : (numq x == 0_int) = (x == 0).
 Proof.
 rewrite -[x]valqK fracq_eq0; case: fracqP=> /= [|k {}x k0].
   by rewrite eqxx orbT.
 by rewrite !mulf_eq0 (negPf k0) /= denq_eq0 orbF.
 Qed.
 
-Notation "n %:Q" := ((n : int)%:~R : rat) : ring_scope.
+Notation "n %:Q" := (n%:~R : rat) : ring_scope.
 
 #[global] Hint Resolve denq_neq0 denq_gt0 denq_ge0 : core.
 
@@ -538,12 +542,12 @@ by rewrite intS opprD mulrzDl ratzD ihn.
 Qed.
 
 Lemma numq_int n : numq n%:Q = n. Proof. by rewrite -ratzE. Qed.
-Lemma denq_int n : denq n%:Q = 1. Proof. by rewrite -ratzE. Qed.
+Lemma denq_int n : denq n%:Q = 1_int. Proof. by rewrite -ratzE. Qed.
 
 Lemma rat0 : 0%:Q = 0. Proof. by []. Qed.
 Lemma rat1 : 1%:Q = 1. Proof. by []. Qed.
 
-Lemma numqN x : numq (- x) = - numq x.
+Lemma numqN x : numq (- x) = -_int numq x.
 Proof.
 rewrite [- _]oppq_def/= num_fracq.
 case: x => -[a b]; rewrite /numq/= => /andP[b_gt0].
@@ -576,9 +580,9 @@ Qed.
 Lemma divq_num_den x : (numq x)%:Q / (denq x)%:Q = x.
 Proof. by rewrite -{3}[x]valqK [valq _]surjective_pairing /= fracqE. Qed.
 
-Variant divq_spec (n d : int) : int -> int -> rat -> Type :=
+Variant divq_spec (n d : int^r) : int^r -> int^r -> rat -> Type :=
 | DivqSpecN of d = 0 : divq_spec n d n 0 0
-| DivqSpecP k x of k != 0 : divq_spec n d (k * numq x) (k * denq x) x.
+| DivqSpecP k x of k != 0_int : divq_spec n d (k * numq x) (k * denq x) x.
 
 (* replaces fracqP *)
 Lemma divqP n d : divq_spec n d n d (n%:Q / d%:Q).
@@ -619,7 +623,7 @@ move=> cnd; have <- := fracqE (n, d).
 by rewrite den_fracq/= (eqP (cnd : _ == 1%N)) divn1; case: d {cnd}; case.
 Qed.
 
-Lemma denqVz (i : int) : i != 0 -> denq (i%:~R^-1) = `|i|.
+Lemma denqVz (i : int^r) : i != 0 -> denq (i%:~R^-1) = `|i|.
 Proof.
 move=> h; rewrite -div1r -[1]/(1%:~R).
 by rewrite coprimeq_den /= ?coprime1n // (negPf h).
@@ -631,35 +635,35 @@ Proof. by rewrite -{2}[x]divq_num_den divfK // intq_eq0 denq_eq0. Qed.
 Lemma denqP x : {d | denq x = d.+1}.
 Proof. by rewrite /denq; case: x => [[_ [[|d]|]] //= _]; exists d. Qed.
 
-Definition normq '(Rat x _) : rat := `|x.1|%:~R / (x.2)%:~R.
-Definition le_rat '(Rat x _) '(Rat y _) := x.1 * y.2 <= y.1 * x.2.
-Definition lt_rat '(Rat x _) '(Rat y _) := x.1 * y.2 < y.1 * x.2.
+Definition normq '(Rat x _) : rat := `|x.1 : int^r|%:~R / (x.2)%:~R.
+Definition le_rat '(Rat x _) '(Rat y _) := x.1 *_int y.2 <= y.1 *_int x.2.
+Definition lt_rat '(Rat x _) '(Rat y _) := x.1 *_int y.2 < y.1 *_int x.2.
 
-Lemma normqE x : normq x = `|numq x|%:~R / (denq x)%:~R.
+Lemma normqE x : normq x = `|numq x : int^r|%:~R / (denq x)%:~R.
 Proof. by case: x. Qed.
 
-Lemma le_ratE x y : le_rat x y = (numq x * denq y <= numq y * denq x).
+Lemma le_ratE x y : le_rat x y = (numq x *_int denq y <= numq y *_int denq x).
 Proof. by case: x; case: y. Qed.
 
-Lemma lt_ratE x y : lt_rat x y = (numq x * denq y < numq y * denq x).
+Lemma lt_ratE x y : lt_rat x y = (numq x *_int denq y < numq y *_int denq x).
 Proof. by case: x; case: y. Qed.
 
-Lemma gt_rat0 x : lt_rat 0 x = (0 < numq x).
+Lemma gt_rat0 x : lt_rat 0 x = (0_int < numq x).
 Proof. by rewrite lt_ratE mul0r mulr1. Qed.
 
-Lemma lt_rat0 x : lt_rat x 0 = (numq x < 0).
+Lemma lt_rat0 x : lt_rat x 0 = (numq x < 0_int).
 Proof. by rewrite lt_ratE mul0r mulr1. Qed.
 
-Lemma ge_rat0 x : le_rat 0 x = (0 <= numq x).
+Lemma ge_rat0 x : le_rat 0 x = (0_int <= numq x).
 Proof. by rewrite le_ratE mul0r mulr1. Qed.
 
-Lemma le_rat0 x : le_rat x 0 = (numq x <= 0).
+Lemma le_rat0 x : le_rat x 0 = (numq x <= 0_int).
 Proof. by rewrite le_ratE mul0r mulr1. Qed.
 
 Fact le_rat0D x y : le_rat 0 x -> le_rat 0 y -> le_rat 0 (x + y).
 Proof.
 rewrite !ge_rat0 => hnx hny.
-have hxy: (0 <= numq x * denq y + numq y * denq x).
+have hxy: (0_int <= numq x *_int denq y + numq y *_int denq x).
   by rewrite addr_ge0 ?mulr_ge0.
 rewrite [_ + _]addq_def /numq /= -!/(denq _) ?mulf_eq0 ?denq_eq0.
 rewrite val_fracq/=; case: ifP => //=.
@@ -669,11 +673,11 @@ Qed.
 Fact le_rat0M x y : le_rat 0 x -> le_rat 0 y -> le_rat 0 (x * y).
 Proof.
 rewrite !ge_rat0 => hnx hny.
-have hxy: (0 <= numq x * denq y + numq y * denq x).
+have hxy: (0 <= numq x *_int denq y + numq y *_int denq x).
   by rewrite addr_ge0 ?mulr_ge0.
 rewrite [_ * _]mulq_def /numq /= -!/(denq _) ?mulf_eq0 ?denq_eq0.
 rewrite val_fracq/=; case: ifP => //=.
-by rewrite ?mulq_subdefE !mulr_ge0// !le_gtF ?mulr_ge0 ?denq_ge0//=.
+by rewrite ?mulq_subdefE !mulr_ge0// !le_gtF ?mulr_ge0 ?denq_ge0.
 Qed.
 
 Fact le_rat0_anti x : le_rat 0 x -> le_rat x 0 -> x = 0.
@@ -681,7 +685,8 @@ Proof.
 by move=> hx hy; apply/eqP; rewrite -numq_eq0 eq_le -ge_rat0 -le_rat0 hx hy.
 Qed.
 
-Lemma sgr_numq_div (n d : int) : sgr (numq (n%:Q / d%:Q)) = sgr n * sgr d.
+Lemma sgr_numq_div (n d : int^r) :
+  sgr (numq (n%:Q / d%:Q) : int^r) = sgr n * sgr d.
 Proof.
 set x := (n, d); rewrite -[n]/x.1 -[d]/x.2 -fracqE.
 case: fracqP => [|k fx k_neq0] /=; first by rewrite mulr0.
@@ -700,17 +705,18 @@ Qed.
 Fact le_rat_total : total le_rat.
 Proof. by move=> x y; rewrite !le_ratE; apply: le_total. Qed.
 
-Fact numq_sign_mul (b : bool) x : numq ((-1) ^+ b * x) = (-1) ^+ b * numq x.
+Fact numq_sign_mul (b : bool) x : numq ((-1) ^+ b * x) = (-1) ^+ b *_int numq x.
 Proof. by case: b; rewrite ?(mul1r, mulN1r) // numqN. Qed.
 
-Fact numq_div_lt0 n d : n != 0 -> d != 0 ->
-  (numq (n%:~R / d%:~R) < 0)%R = (n < 0)%R (+) (d < 0)%R.
+Fact numq_div_lt0 (n d : int^r) : n != 0 -> d != 0 ->
+  (numq (n%:~R / d%:~R) < 0_int)%R = (n < 0)%R (+) (d < 0)%R.
 Proof.
-move=> n0 d0; rewrite -sgr_cp0 sgr_numq_div !sgr_def n0 d0.
+move=> n0 d0; rewrite -(@sgr_cp0 rint) sgr_numq_div !sgr_def n0 d0.
 by rewrite !mulr1n -signr_addb; case: (_ (+) _).
 Qed.
 
-Lemma normr_num_div n d : `|numq (n%:~R / d%:~R)| = numq (`|n|%:~R / `|d|%:~R).
+Lemma normr_num_div n d :
+  `|numq (n%:~R / d%:~R) : int^r| = numq (`|n|%:~R / `|d|%:~R).
 Proof.
 rewrite (normrEsg n) (normrEsg d) !rmorphM /= invfM mulrACA !sgr_def.
 have [->|n_neq0] := eqVneq; first by rewrite mul0r mulr0.
@@ -735,21 +741,21 @@ HB.instance Definition _ :=
    Num.IntegralDomain_isLeReal.Build rat le_rat0D le_rat0M le_rat0_anti
      subq_ge0 (@le_rat_total 0) norm_ratN ge_rat0_norm lt_rat_def.
 
-Lemma numq_ge0 x : (0 <= numq x) = (0 <= x).
+Lemma numq_ge0 x : (0_int <= numq x) = (0 <= x).
 Proof.
 by case: ratP => n d cnd; rewrite ?pmulr_lge0 ?invr_gt0 (ler0z, ltr0z).
 Qed.
 
-Lemma numq_le0 x : (numq x <= 0) = (x <= 0).
-Proof. by rewrite -oppr_ge0 -numqN numq_ge0 oppr_ge0. Qed.
+Lemma numq_le0 x : (numq x <= 0_int) = (x <= 0).
+Proof. by rewrite -(@oppr_ge0 rint) -numqN numq_ge0 oppr_ge0. Qed.
 
-Lemma numq_gt0 x : (0 < numq x) = (0 < x).
+Lemma numq_gt0 x : (0_int < numq x) = (0 < x).
 Proof. by rewrite !ltNge numq_le0. Qed.
 
-Lemma numq_lt0 x : (numq x < 0) = (x < 0).
+Lemma numq_lt0 x : (numq x < 0_int) = (x < 0).
 Proof. by rewrite !ltNge numq_ge0. Qed.
 
-Lemma sgr_numq x : sgz (numq x) = sgz x.
+Lemma sgr_numq x : sgz (numq x : int^r) = sgz x.
 Proof.
 apply/eqP; case: (sgzP x); rewrite sgz_cp0 ?(numq_gt0, numq_lt0) //.
 by move->.
@@ -776,7 +782,7 @@ rewrite ler_pdivlMr ?ltr_pdivrMr ?ltr0z // -!natrM ler_nat ltr_nat.
 by rewrite leq_trunc_div ltn_ceil.
 Qed.
 
-Let is_nat x := (0 <= x) && (denq x == 1).
+Let is_nat x := (0 <= x) && (denq x == 1_int).
 
 Lemma is_natE x : is_nat x = ((trunc x)%:R == x).
 Proof.
@@ -786,7 +792,7 @@ apply/eqP/idP => [->|/dvdnP[k nE]] //.
 by move/eqP: pnd; rewrite nE gcdnC gcdnMl.
 Qed.
 
-Lemma is_intE x : (denq x == 1) = is_nat x || is_nat (- x).
+Lemma is_intE x : (denq x == 1_int) = is_nat x || is_nat (- x).
 Proof. by rewrite /is_nat denqN oppr_ge0 -andb_orl le_total. Qed.
 
 End ratArchimedean.
@@ -795,7 +801,8 @@ End ratArchimedean.
 HB.instance Definition _ := Num.NumDomain_isArchimedean.Build rat
   ratArchimedean.truncP ratArchimedean.is_natE ratArchimedean.is_intE.
 
-Lemma Qint_def (x : rat) : (x \is a Num.int) = (denq x == 1). Proof. by []. Qed.
+Lemma Qint_def (x : rat) : (x \is a Num.int) = (denq x == 1_int).
+Proof. by []. Qed.
 
 Lemma numqK : {in Num.int, cancel (fun x => numq x) intr}.
 Proof. by move=> _ /intrP [x ->]; rewrite numq_int. Qed.

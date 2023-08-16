@@ -294,7 +294,7 @@ Lemma intrP x : reflect (exists m, x = m%:~R) (x \is a int_num).
 Proof.
 apply: (iffP idP) => [x_int | [m -> //]].
 rewrite -[x]opprK; move: x_int; rewrite intrE.
-move=> /orP[] /natrP[n ->]; first by exists n; rewrite opprK.
+move=> /orP[] /natrP[n ->]; first by exists n%:Z; rewrite opprK.
 by exists (- n%:R); rewrite mulrNz mulrz_nat.
 Qed.
 

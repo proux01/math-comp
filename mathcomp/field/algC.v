@@ -533,7 +533,7 @@ by rewrite gcdp_eq0 negb_and map_poly_eq0 monic_neq0.
 Qed.
 
 Definition algC_divisor (x : algC) := x : divisor.
-Definition int_divisor m := m%:~R : divisor.
+Definition int_divisor (m : int) := m%:~R : divisor.
 Definition nat_divisor n := n%:R : divisor.
 
 End Internals.
@@ -938,10 +938,11 @@ Notation truncC := (Num.trunc : algC -> nat) (only parsing).
 Lemma Creal0 : 0 \is Creal. Proof. exact: real0. Qed.
 Lemma Creal1 : 1 \is Creal. Proof. exact: real1. Qed.
 
-Lemma floorC_itv x : x \is Creal -> (floorC x)%:~R <= x < (floorC x + 1)%:~R.
+Lemma floorC_itv x : x \is Creal ->
+  (floorC x)%:~R <= x < (floorC x +_int 1)%:~R.
 Proof. exact: floor_itv. Qed.
 
-Lemma floorC_def x m : m%:~R <= x < (m + 1)%:~R -> floorC x = m.
+Lemma floorC_def x (m : int^r) : m%:~R <= x < (m + 1)%:~R -> floorC x = m.
 Proof. exact: floor_def. Qed.
 
 Lemma intCK : cancel intr floorC.
@@ -950,11 +951,11 @@ Proof. exact: intrKfloor. Qed.
 Lemma floorCK : {in Cint, cancel floorC intr}.
 Proof. exact: floorK. Qed.
 
-Lemma floorC0 : floorC 0 = 0. Proof. exact: floor0. Qed.
-Lemma floorC1 : floorC 1 = 1. Proof. exact: floor1. Qed.
+Lemma floorC0 : floorC 0 = 0_int. Proof. exact: floor0. Qed.
+Lemma floorC1 : floorC 1 = 1_int. Proof. exact: floor1. Qed.
 
 Lemma floorCpK (p : {poly algC}) :
-  p \is a polyOver Cint -> map_poly intr (map_poly floorC p) = p.
+  p \is a polyOver Cint -> map_poly intr (map_poly (floorC : _ -> int^r) p) = p.
 Proof. exact: floorpK. Qed.
 
 Lemma floorCpP (p : {poly algC}) :
@@ -967,16 +968,16 @@ Proof. exact: intr_int. Qed.
 Lemma CintP x : reflect (exists m, x = m%:~R) (x \in Cint).
 Proof. exact: intrP. Qed.
 
-Lemma floorCD : {in Cint & Creal, {morph floorC : x y / x + y}}.
+Lemma floorCD : {in Cint & Creal, {morph (floorC : _ -> int^r) : x y / x + y}}.
 Proof. exact: floorD. Qed.
 
-Lemma floorCN : {in Cint, {morph floorC : x / - x}}.
+Lemma floorCN : {in Cint, {morph (floorC : _ -> int^r) : x / - x}}.
 Proof. exact: floorN. Qed.
 
-Lemma floorCM : {in Cint &, {morph floorC : x y / x * y}}.
+Lemma floorCM : {in Cint &, {morph (floorC : _ -> int^r) : x y / x * y}}.
 Proof. exact: floorM. Qed.
 
-Lemma floorCX n : {in Cint, {morph floorC : x / x ^+ n}}.
+Lemma floorCX n : {in Cint, {morph (floorC : _ -> int^r) : x / x ^+ n}}.
 Proof. exact: floorX. Qed.
 
 Lemma rpred_Cint (S : subringClosed algC) x : x \in Cint -> x \in S.

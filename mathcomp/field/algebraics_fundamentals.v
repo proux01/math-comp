@@ -153,7 +153,7 @@ Lemma rat_algebraic_decidable (C : fieldType) (QtoC : Qmorphism C) :
   integralRange QtoC -> decidable_embedding QtoC.
 Proof.
 have QtoCinj: injective QtoC by apply: fmorph_inj.
-pose ZtoQ : int -> rat := intr; pose ZtoC : int -> C := intr.
+pose ZtoQ : int^r -> rat := intr; pose ZtoC : int -> C := intr.
 have ZtoQinj: injective ZtoQ by apply: intr_inj.
 have defZtoC: ZtoC =1 QtoC \o ZtoQ by move=> m; rewrite /= rmorph_int.
 move=> algC x; have /sig2_eqW[q mon_q qx0] := algC x; pose d := (size q).-1.
@@ -171,14 +171,15 @@ have [/sig2_eqW[y _ ->] | xa'x] := @mapP _ _ QtoC xa x; first by left; exists y.
 right=> [[y Dx]]; case: xa'x; exists y => //.
 have{x Dx qx0} qy0: root q y by rewrite Dx fmorph_root in qx0.
 have /dvdzP[b Da]: (denq y %| a)%Z.
-  have /Gauss_dvdzl <-: coprimez (denq y) (numq y ^+ d).
+  have /Gauss_dvdzl <-: coprimez (denq y) (numq y ^+_int d).
     by rewrite coprimez_sym coprimezXl //; apply: coprime_num_den.
-  pose p1 : {poly int} := a *: 'X^d - p.
+  pose p1 : {poly int^r} := a *: 'X^d - p.
   have Dp1: p1 ^ intr = a%:~R *: ('X^d - q).
     by rewrite rmorphB /= linearZ /= map_polyXn scalerBr Dq scalerKV ?intr_eq0.
-  apply/dvdzP; exists (\sum_(i < d) p1`_i * numq y ^+ i * denq y ^+ (d - i.+1)).
+  apply/dvdzP.
+  exists (\sum_(i < d) p1`_i * numq y ^+_int i * denq y ^+_int (d - i.+1)).
   apply: ZtoQinj; rewrite /ZtoQ rmorphM mulr_suml rmorph_sum /=.
-  transitivity ((p1 ^ intr).[y] * (denq y ^+ d)%:~R).
+  transitivity ((p1 ^ intr).[y] * (denq y ^+_int d)%:~R).
     rewrite Dp1 !hornerE (rootP qy0) subr0.
     by rewrite !rmorphXn /= numqE exprMn mulrA.
   have sz_p1: (size (p1 ^ ZtoQ)%R <= d)%N.
@@ -189,7 +190,7 @@ have /dvdzP[b Da]: (denq y %| a)%Z.
   rewrite (horner_coef_wide _ sz_p1) mulr_suml; apply: eq_bigr => i _.
   rewrite -!mulrA -exprSr coef_map !rmorphM !rmorphXn /= numqE exprMn -mulrA.
   by rewrite -exprD -addSnnS subnKC.
-pose m := `|(numq y * b + N)%R|%N.
+pose m := `|(numq y *_int b + N)%R|%N.
 have Dm: m%:R = `|y * a%:~R + N%:R|.
   by rewrite pmulrn abszE intr_norm Da rmorphD !rmorphM /= numqE mulrAC mulrA.
 have ltr_Qnat n1 n2 : (n1%:R < n2%:R :> rat = _) := ltr_nat _ n1 n2.

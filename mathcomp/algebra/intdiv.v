@@ -53,52 +53,56 @@ Unset Printing Implicit Defensive.
 Import Order.TTheory GRing.Theory Num.Theory.
 Local Open Scope ring_scope.
 
-Definition divz (m d : int) : int :=
+Section Intdiv.
+
+Implicit Types p m n d : int^r.
+
+Definition divz m d : int :=
   let: (K, n) := match m with Posz n => (Posz, n) | Negz n => (Negz, n) end in
   sgz d * K (n %/ `|d|)%N.
 
-Definition modz (m d : int) : int := m - divz m d * d.
+Definition modz m d : int := m - divz m d *_int d.
 
 Definition dvdz d m := (`|d| %| `|m|)%N.
 
-Definition gcdz m n := (gcdn `|m| `|n|)%:Z.
+Definition gcdz m n : int := (gcdn `|m| `|n|)%:Z.
 
-Definition lcmz m n := (lcmn `|m| `|n|)%:Z.
+Definition lcmz m n : int := (lcmn `|m| `|n|)%:Z.
 
 Definition egcdz m n : int * int :=
   if m == 0 then (0, (-1) ^+ (n < 0)%R) else
   let: (u, v) := egcdn `|m| `|n| in (sgz m * u, - (-1) ^+ (n < 0)%R * v%:Z).
 
-Definition coprimez m n := (gcdz m n == 1).
+Definition coprimez m n := (gcdz m n == 1_int).
 
-Infix "%/" := divz : int_scope.
-Infix "%%" := modz : int_scope.
-Notation "d %| m" := (m \in dvdz d) : int_scope.
-Notation "m = n %[mod d ]" := (modz m d = modz n d) : int_scope.
-Notation "m == n %[mod d ]" := (modz m d == modz n d) : int_scope.
-Notation "m <> n %[mod d ]" := (modz m d <> modz n d) : int_scope.
-Notation "m != n %[mod d ]" := (modz m d != modz n d) : int_scope.
+Local Infix "%/" := divz : int_scope.
+Local Infix "%%" := modz : int_scope.
+Local Notation "d %| m" := (m \in dvdz d) : int_scope.
+Local Notation "m = n %[mod d ]" := (modz m d = modz n d) : int_scope.
+Local Notation "m == n %[mod d ]" := (modz m d == modz n d) : int_scope.
+Local Notation "m <> n %[mod d ]" := (modz m d <> modz n d) : int_scope.
+Local Notation "m != n %[mod d ]" := (modz m d != modz n d) : int_scope.
 
 Lemma divz_nat (n d : nat) : (n %/ d)%Z = (n %/ d)%N.
 Proof. by case: d => // d; rewrite /divz /= mul1r. Qed.
 
-Lemma divzN m d : (m %/ - d)%Z = - (m %/ d)%Z.
+Lemma divzN m d : (m %/ - d)%Z = -_int (m %/ d)%Z.
 Proof. by case: m => n; rewrite /divz /= sgzN abszN mulNr. Qed.
 
-Lemma divz_abs (m d : int) : (m %/ `|d|)%Z = (-1) ^+ (d < 0)%R * (m %/ d)%Z.
+Lemma divz_abs m d : (m %/ `|d|)%Z = (-1) ^+ (d < 0)%R *_int (m %/ d)%Z :> rint.
 Proof.
 by rewrite {3}[d]intEsign !mulr_sign; case: ifP => -> //; rewrite divzN opprK.
 Qed.
 
-Lemma div0z d : (0 %/ d)%Z = 0.
+Lemma div0z d : (0 %/ d)%Z = 0_int.
 Proof.
 by rewrite -(canLR (signrMK _) (divz_abs _ _)) (divz_nat 0) div0n mulr0.
 Qed.
 
-Lemma divNz_nat m d : (d > 0)%N -> (Negz m %/ d)%Z = - (m %/ d).+1%:Z.
-Proof. by case: d => // d _; apply: mul1r. Qed.
+Lemma divNz_nat (m d : nat) : (d > 0)%N -> (Negz m %/ d)%Z = - (m %/ d).+1%:Z.
+Proof. by case: d => // d _; apply: (@mul1r rint). Qed.
 
-Lemma divz_eq m d : m = (m %/ d)%Z * d + (m %% d)%Z.
+Lemma divz_eq m d : m = (m %/ d)%Z *_int d + (m %% d)%Z.
 Proof. by rewrite addrC subrK. Qed.
 
 Lemma modzN m d : (m %% - d)%Z = (m %% d)%Z.
@@ -109,28 +113,30 @@ Proof. by rewrite {2}[d]intEsign mulr_sign; case: ifP; rewrite ?modzN. Qed.
 
 Lemma modz_nat (m d : nat) : (m %% d)%Z = (m %% d)%N.
 Proof.
-by apply: (canLR (addrK _)); rewrite addrC divz_nat {1}(divn_eq m d).
+by apply: (canLR (@addrK rint _)); rewrite addrC divz_nat {1}(divn_eq m d).
 Qed.
 
-Lemma modNz_nat m d : (d > 0)%N -> (Negz m %% d)%Z = d%:Z - 1 - (m %% d)%:Z.
+Lemma modNz_nat (m d : nat) : (d > 0)%N ->
+  (Negz m %% d)%Z = d%:Z - 1 - (m %% d)%:Z.
 Proof.
-rewrite /modz => /divNz_nat->; apply: (canLR (addrK _)).
+rewrite /modz => /divNz_nat->; apply: (canLR (@addrK rint _)).
 rewrite -!addrA -!opprD -!PoszD -opprB mulnSr !addnA PoszD addrK.
 by rewrite addnAC -addnA mulnC -divn_eq.
 Qed.
 
-Lemma modz_ge0 m d : d != 0 -> 0 <= (m %% d)%Z.
+Lemma modz_ge0 m d : d != 0 -> 0_int <= (m %% d)%Z.
 Proof.
 rewrite -absz_gt0 -modz_abs => d_gt0.
 case: m => n; rewrite ?modNz_nat ?modz_nat // -addrA -opprD subr_ge0.
 by rewrite lez_nat ltn_mod.
 Qed.
 
-Lemma divz0 m : (m %/ 0)%Z = 0. Proof. by case: m. Qed.
-Lemma mod0z d : (0 %% d)%Z = 0. Proof. by rewrite /modz div0z mul0r subrr. Qed.
+Lemma divz0 m : (m %/ 0)%Z = 0_int. Proof. by case: m. Qed.
+Lemma mod0z d : (0 %% d)%Z = 0_int.
+Proof. by rewrite /modz div0z mul0r subrr. Qed.
 Lemma modz0 m : (m %% 0)%Z = m. Proof. by rewrite /modz mulr0 subr0. Qed.
 
-Lemma divz_small m d : 0 <= m < `|d|%:Z -> (m %/ d)%Z = 0.
+Lemma divz_small m d : 0 <= m < `|d|%:Z -> (m %/ d)%Z = 0_int.
 Proof.
 rewrite -(canLR (signrMK _) (divz_abs _ _)); case: m => // n /divn_small.
 by rewrite divz_nat => ->; rewrite mulr0.
@@ -141,16 +147,16 @@ Proof.
 rewrite neq_lt -oppr_gt0 => nz_d.
 wlog{nz_d} d_gt0: q d / d > 0; last case: d => // d in d_gt0 *.
   move=> IH; case/orP: nz_d => /IH// /(_  (- q)).
-  by rewrite mulrNN !divzN -opprD => /oppr_inj.
+  by rewrite mulrNN !divzN -opprD -[int]/rint => /oppr_inj.
 wlog q_gt0: q m / q >= 0; last case: q q_gt0 => // q _.
   move=> IH; case: q => n; first exact: IH; rewrite NegzE mulNr.
-  by apply: canRL (addKr _) _; rewrite -IH ?addNKr.
+  by apply: canRL (@addKr rint _) _; rewrite -IH ?addNKr.
 case: m => n; first by rewrite !divz_nat divnMDl.
 have [le_qd_n | lt_qd_n] := leqP (q * d) n.
   rewrite divNz_nat // NegzE -(subnKC le_qd_n) divnMDl //.
   by rewrite -!addnS !PoszD !opprD !addNKr divNz_nat.
 rewrite divNz_nat // NegzE -PoszM subzn // divz_nat.
-apply: canRL (addrK _) _; congr _%:Z; rewrite addnC -divnMDl // mulSnr.
+apply: canRL (@addrK rint _) _; congr _%:Z; rewrite addnC -divnMDl // mulSnr.
 rewrite -{3}(subnKC (ltn_pmod n d_gt0)) addnA addnS -divn_eq addnAC.
 by rewrite subnKC // divnMDl // divn_small ?addn0 // subnSK ?ltn_mod ?leq_subr.
 Qed.
@@ -161,10 +167,11 @@ Proof. by move=> d_nz; rewrite -[m * d]addr0 divzMDl // div0z addr0. Qed.
 Lemma mulKz m d : d != 0 -> (d * m %/ d)%Z = m.
 Proof. by move=> d_nz; rewrite mulrC mulzK. Qed.
 
-Lemma expzB p m n : p != 0 -> (m >= n)%N -> p ^+ (m - n) = (p ^+ m %/ p ^+ n)%Z.
+Lemma expzB p (m n : nat) : p != 0 -> (m >= n)%N ->
+  p ^+ (m - n) = (p ^+ m %/ p ^+ n)%Z.
 Proof. by move=> p_nz /subnK{2}<-; rewrite exprD mulzK // expf_neq0. Qed.
 
-Lemma modz1 m : (m %% 1)%Z = 0.
+Lemma modz1 m : (m %% 1)%Z = 0_int.
 Proof. by case: m => n; rewrite (modNz_nat, modz_nat) ?modn1. Qed.
 
 Lemma divz1 m : (m %/ 1)%Z = m. Proof. by rewrite -{1}[m]mulr1 mulzK. Qed.
@@ -195,7 +202,7 @@ Lemma divzMpr p m d : p > 0 -> (m * p %/ (d * p) = m %/ d)%Z.
 Proof. by move=> p_gt0; rewrite -!(mulrC p) divzMpl. Qed.
 Arguments divzMpr [p m d].
 
-Lemma lez_floor m d : d != 0 -> (m %/ d)%Z * d <= m.
+Lemma lez_floor m d : d != 0 -> (m %/ d)%Z *_int d <= m.
 Proof. by rewrite -subr_ge0; apply: modz_ge0. Qed.
 
 (* leq_mod does not extend to negative m. *)
@@ -207,7 +214,7 @@ case: m => n; first by rewrite divz_nat leq_div.
 by rewrite divNz_nat // NegzE !abszN ltnS leq_div.
 Qed.
 
-Lemma ltz_ceil m d : d > 0 -> m < ((m %/ d)%Z + 1) * d.
+Lemma ltz_ceil m d : d > 0 -> m < ((m %/ d)%Z +_int 1) * d.
 Proof.
 by case: d => // d d_gt0; rewrite mulrDl mul1r -ltrBlDl ltz_mod ?gt_eqF.
 Qed.
@@ -227,7 +234,7 @@ Proof.
 by case: d => [[|d]|]// _ [] m [] n //; rewrite /divz !mul1r; apply: leq_div2r.
 Qed.
 
-Lemma divz_ge0 m d : d > 0 -> ((m %/ d)%Z >= 0) = (m >= 0).
+Lemma divz_ge0 m d : d > 0 -> ((m %/ d)%Z >= 0_int) = (m >= 0).
 Proof. by case: d m => // d [] n d_gt0; rewrite (divz_nat, divNz_nat). Qed.
 
 Lemma divzMA_ge0 m n p : n >= 0 -> (m %/ (n * p) = (m %/ n)%Z %/ p)%Z.
@@ -261,7 +268,7 @@ case: p => // p p_gt0; rewrite mulrBr; apply: canLR (addrK _) _.
 by rewrite mulrCA -(divzMpl p_gt0) subrK.
 Qed.
 
-Lemma mulz_modl {p m d} : 0 < p -> (m %% d)%Z * p = ((m * p) %% (d * p))%Z.
+Lemma mulz_modl {p m d} : 0 < p -> (m %% d)%Z *_int p = ((m * p) %% (d * p))%Z.
 Proof. by rewrite -!(mulrC p); apply: mulz_modr. Qed.
 
 Lemma modzDl m d : (d + m = m %[mod d])%Z.
@@ -270,22 +277,22 @@ Proof. by rewrite -{1}[d]mul1r modzMDl. Qed.
 Lemma modzDr m d : (m + d = m %[mod d])%Z.
 Proof. by rewrite addrC modzDl. Qed.
 
-Lemma modzz d : (d %% d)%Z = 0.
+Lemma modzz d : (d %% d)%Z = 0_int.
 Proof. by rewrite -{1}[d]addr0 modzDl mod0z. Qed.
 
-Lemma modzMl p d : (p * d %% d)%Z = 0.
+Lemma modzMl p d : (p * d %% d)%Z = 0_int.
 Proof. by rewrite -[p * d]addr0 modzMDl mod0z. Qed.
 
-Lemma modzMr p d : (d * p %% d)%Z = 0.
+Lemma modzMr p d : (d * p %% d)%Z = 0_int.
 Proof. by rewrite mulrC modzMl. Qed.
 
-Lemma modzDml m n d : ((m %% d)%Z + n = m + n %[mod d])%Z.
+Lemma modzDml m n d : ((m %% d)%Z +_int n = m + n %[mod d])%Z.
 Proof. by rewrite {2}(divz_eq m d) -[_ * d + _ + n]addrA modzMDl. Qed.
 
 Lemma modzDmr m n d : (m + (n %% d)%Z = m + n %[mod d])%Z.
 Proof. by rewrite !(addrC m) modzDml. Qed.
 
-Lemma modzDm m n d : ((m %% d)%Z + (n %% d)%Z = m + n %[mod d])%Z.
+Lemma modzDm m n d : ((m %% d)%Z +_int (n %% d)%Z = m + n %[mod d])%Z.
 Proof. by rewrite modzDml modzDmr. Qed.
 
 Lemma eqz_modDl p m n d : (p + m == p + n %[mod d])%Z = (m == n %[mod d])%Z.
@@ -298,22 +305,22 @@ Qed.
 Lemma eqz_modDr p m n d : (m + p == n + p %[mod d])%Z = (m == n %[mod d])%Z.
 Proof. by rewrite -!(addrC p) eqz_modDl. Qed.
 
-Lemma modzMml m n d : ((m %% d)%Z * n = m * n %[mod d])%Z.
+Lemma modzMml m n d : ((m %% d)%Z *_int n = m * n %[mod d])%Z.
 Proof. by rewrite {2}(divz_eq m d) [in RHS]mulrDl mulrAC modzMDl. Qed.  (* FIXME: rewrite pattern *)
 
 Lemma modzMmr m n d : (m * (n %% d)%Z = m * n %[mod d])%Z.
 Proof. by rewrite !(mulrC m) modzMml. Qed.
 
-Lemma modzMm m n d : ((m %% d)%Z * (n %% d)%Z = m * n %[mod d])%Z.
+Lemma modzMm m n d : ((m %% d)%Z *_int (n %% d)%Z = m * n %[mod d])%Z.
 Proof. by rewrite modzMml modzMmr. Qed.
 
-Lemma modzXm k m d : ((m %% d)%Z ^+ k = m ^+ k %[mod d])%Z.
-Proof. by elim: k => // k IHk; rewrite !exprS -modzMmr IHk modzMm. Qed.
+Lemma modzXm k m d : ((m %% d)%Z ^+_int k = m ^+ k %[mod d])%Z.
+Proof. by elim: k => // k IHk; rewrite !(@exprS rint) -modzMmr IHk modzMm. Qed.
 
-Lemma modzNm m d : (- (m %% d)%Z = - m %[mod d])%Z.
+Lemma modzNm m d : (-_int (m %% d)%Z = - m %[mod d])%Z.
 Proof. by rewrite -mulN1r modzMmr mulN1r. Qed.
 
-Lemma modz_absm m d : ((-1) ^+ (m < 0)%R * (m %% d)%Z = `|m|%:Z %[mod d])%Z.
+Lemma modz_absm m d : ((-1) ^+ (m < 0)%R *_int (m %% d)%Z = `|m|%:Z %[mod d])%Z.
 Proof. by rewrite modzMmr -abszEsign. Qed.
 
 (** Divisibility **)
@@ -330,7 +337,7 @@ Proof. by rewrite !dvdzE abszM; apply: dvdn_mull. Qed.
 
 Lemma dvdz_mulr d m n : (d %| m)%Z -> (d %| m * n)%Z.
 Proof. by move=> d_m; rewrite mulrC dvdz_mull. Qed.
-#[global] Hint Resolve dvdz0 dvd1z dvdzz dvdz_mull dvdz_mulr : core.
+#[local] Hint Resolve dvdz0 dvd1z dvdzz dvdz_mull dvdz_mulr : core.
 
 Lemma dvdz_mul d1 d2 m1 m2 : (d1 %| m1 -> d2 %| m2 -> d1 * d2 %| m1 * m2)%Z.
 Proof. by rewrite !dvdzE !abszM; apply: dvdn_mul. Qed.
@@ -353,10 +360,10 @@ by rewrite (divz_eq m d) md0 addr0; exists (m %/ d)%Z.
 Qed.
 Arguments dvdz_mod0P {d m}.
 
-Lemma dvdz_eq d m : (d %| m)%Z = ((m %/ d)%Z * d == m).
-Proof. by rewrite (sameP dvdz_mod0P eqP) subr_eq0 eq_sym. Qed.
+Lemma dvdz_eq d m : (d %| m)%Z = ((m %/ d)%Z *_int d == m).
+Proof. by rewrite (sameP dvdz_mod0P eqP) (@subr_eq0 rint) eq_sym. Qed.
 
-Lemma divzK d m : (d %| m)%Z -> (m %/ d)%Z * d = m.
+Lemma divzK d m : (d %| m)%Z -> (m %/ d)%Z *_int d = m.
 Proof. by rewrite dvdz_eq => /eqP. Qed.
 
 Lemma lez_divLR d m n : 0 < d -> (d %| m)%Z -> ((m %/ d)%Z <= n) = (m <= n * d).
@@ -371,7 +378,7 @@ Proof. by move=> /mulIf/inj_eq <- /divzK->. Qed.
 Lemma eqz_mul d m n : d != 0 -> (d %| m)%Z -> (m == n * d) = (m %/ d == n)%Z.
 Proof. by move=> d_gt0 dv_d_m; rewrite eq_sym -eqz_div // eq_sym. Qed.
 
-Lemma divz_mulAC d m n : (d %| m)%Z -> (m %/ d)%Z * n = (m * n %/ d)%Z.
+Lemma divz_mulAC d m n : (d %| m)%Z -> (m %/ d)%Z *_int n = (m * n %/ d)%Z.
 Proof.
 have [-> | d_nz] := eqVneq d 0; first by rewrite !divz0 mul0r.
 by move/divzK=> {2} <-; rewrite mulrAC mulzK.
@@ -418,10 +425,10 @@ Lemma dvdz_mul2r p d m : p != 0 -> (d * p %| m * p)%Z = (d %| m)%Z.
 Proof. by rewrite !dvdzE -absz_gt0 !abszM; apply: dvdn_pmul2r. Qed.
 Arguments dvdz_mul2r [p d m].
 
-Lemma dvdz_exp2l p m n : (m <= n)%N -> (p ^+ m %| p ^+ n)%Z.
+Lemma dvdz_exp2l p (m n : nat) : (m <= n)%N -> (p ^+ m %| p ^+ n)%Z.
 Proof. by rewrite dvdzE !abszX; apply: dvdn_exp2l. Qed.
 
-Lemma dvdz_Pexp2l p m n : `|p| > 1 -> (p ^+ m %| p ^+ n)%Z = (m <= n)%N.
+Lemma dvdz_Pexp2l p (m n : nat) : `|p| > 1 -> (p ^+ m %| p ^+ n)%Z = (m <= n)%N.
 Proof. by rewrite dvdzE !abszX ltz_nat; apply: dvdn_Pexp2l. Qed.
 
 Lemma dvdz_exp2r m n k : (m %| n -> m ^+ k %| n ^+ k)%Z.
@@ -432,7 +439,7 @@ Proof.
 split=> [|_ _ /dvdzP[p ->] /dvdzP[q ->]]; first exact: dvdz0.
 by rewrite -mulrBl dvdz_mull.
 Qed.
-HB.instance Definition _ d := GRing.isZmodClosed.Build int (dvdz d)
+HB.instance Definition _ d := GRing.isZmodClosed.Build int^r (dvdz d)
   (dvdz_zmod_closed d).
 
 Lemma dvdz_exp k d m : (0 < k)%N -> (d %| m -> d %| m ^+ k)%Z.
@@ -446,17 +453,17 @@ by rewrite -(subrK n m) -modzDml eq_mn add0r.
 Qed.
 
 Lemma divzDl m n d :
-  (d %| m)%Z -> ((m + n) %/ d)%Z = (m %/ d)%Z + (n %/ d)%Z.
+  (d %| m)%Z -> ((m + n) %/ d)%Z = (m %/ d)%Z +_int (n %/ d)%Z.
 Proof.
 have [-> | d_nz] := eqVneq d 0; first by rewrite !divz0.
 by move/divzK=> {1}<-; rewrite divzMDl.
 Qed.
 
 Lemma divzDr m n d :
-  (d %| n)%Z -> ((m + n) %/ d)%Z = (m %/ d)%Z + (n %/ d)%Z.
+  (d %| n)%Z -> ((m + n) %/ d)%Z = (m %/ d)%Z +_int (n %/ d)%Z.
 Proof. by move=> dv_n; rewrite addrC divzDl // addrC. Qed.
 
-Lemma Qint_dvdz (m d : int) : (d %| m)%Z -> (m%:~R / d%:~R : rat) \is a Num.int.
+Lemma Qint_dvdz m d : (d %| m)%Z -> (m%:~R / d%:~R : rat) \is a Num.int.
 Proof.
 case/dvdzP=> z ->; rewrite rmorphM /=; have [->|dn0] := eqVneq d 0.
   by rewrite mulr0 mul0r.
@@ -476,8 +483,10 @@ Lemma gcd1z : left_zero 1 gcdz. Proof. by move=> m; rewrite /gcdz gcd1n. Qed.
 Lemma gcdz1 : right_zero 1 gcdz. Proof. by move=> m; rewrite /gcdz gcdn1. Qed.
 Lemma dvdz_gcdr m n : (gcdz m n %| n)%Z. Proof. exact: dvdn_gcdr. Qed.
 Lemma dvdz_gcdl m n : (gcdz m n %| m)%Z. Proof. exact: dvdn_gcdl. Qed.
-Lemma gcdz_eq0 m n : (gcdz m n == 0) = (m == 0) && (n == 0).
-Proof. by rewrite -absz_eq0 eqn0Ngt gcdn_gt0 !negb_or -!eqn0Ngt !absz_eq0. Qed.
+Lemma gcdz_eq0 m n : (gcdz m n == 0_int) = (m == 0) && (n == 0).
+Proof.
+by rewrite -absz_eq0 [LHS]eqn0Ngt gcdn_gt0 !negb_or -!eqn0Ngt !absz_eq0.
+Qed.
 Lemma gcdNz m n : gcdz (- m) n = gcdz m n. Proof. by rewrite /gcdz abszN. Qed.
 Lemma gcdzN m n : gcdz m (- n) = gcdz m n. Proof. by rewrite /gcdz abszN. Qed.
 
@@ -497,7 +506,7 @@ Proof. by rewrite -!(gcdzC n) gcdz_modr. Qed.
 
 Lemma gcdzMDl q m n : gcdz m (q * m + n) = gcdz m n.
 Proof. by rewrite -gcdz_modr modzMDl gcdz_modr. Qed.
- 
+
 Lemma gcdzDl m n : gcdz m (m + n) = gcdz m n.
 Proof. by rewrite -{2}(mul1r m) gcdzMDl. Qed.
 
@@ -516,7 +525,8 @@ Proof. by apply: (iffP gcdn_idPl) => [<- | []]. Qed.
 Lemma gcdz_idPr {m n} : reflect (gcdz m n = `|n|%:Z) (n %| m)%Z.
 Proof. by rewrite gcdzC; apply: gcdz_idPl. Qed.
 
-Lemma expz_min e m n : e >= 0 -> e ^+ minn m n = gcdz (e ^+ m) (e ^+ n).
+Lemma expz_min (e : int^r) (m n : nat) : e >= 0 ->
+  e ^+ minn m n = gcdz (e ^+ m) (e ^+ n).
 Proof.
 by case: e => // e _; rewrite /gcdz !abszX -expn_min -natz -natrX !natz.
 Qed.
@@ -539,7 +549,7 @@ Proof. by move=> m n p q; rewrite /gcdz gcdnACA. Qed.
 Lemma mulz_gcdr m n p : `|m|%:Z * gcdz n p = gcdz (m * n) (m * p).
 Proof. by rewrite -PoszM muln_gcdr -!abszM. Qed.
 
-Lemma mulz_gcdl m n p : gcdz m n * `|p|%:Z = gcdz (m * p) (n * p).
+Lemma mulz_gcdl m n p : gcdz m n *_int `|p|%:Z = gcdz (m * p) (n * p).
 Proof. by rewrite -PoszM muln_gcdl -!abszM. Qed.
 
 Lemma mulz_divCA_gcd n m : n * (m %/ gcdz n m)%Z  = m * (n %/ gcdz n m)%Z.
@@ -553,7 +563,7 @@ Proof. exact: dvdn_lcmr. Qed.
 Lemma dvdz_lcml m n : (m %| lcmz m n)%Z.
 Proof. exact: dvdn_lcml. Qed.
 
-Lemma dvdz_lcm d1 d2 m : ((lcmn d1 d2 %| m) = (d1 %| m) && (d2 %| m))%Z.
+Lemma dvdz_lcm (d1 d2 : nat) m : ((lcmn d1 d2 %| m) = (d1 %| m) && (d2 %| m))%Z.
 Proof. exact: dvdn_lcm. Qed.
 
 Lemma lcmzC : commutative lcmz.
@@ -565,14 +575,14 @@ Proof. by move=> x; rewrite /lcmz absz0 lcm0n. Qed.
 Lemma lcmz0 : right_zero 0 lcmz.
 Proof. by move=> x; rewrite /lcmz absz0 lcmn0. Qed.
 
-Lemma lcmz_ge0 m n : 0 <= lcmz m n.
+Lemma lcmz_ge0 m n : 0_int <= lcmz m n.
 Proof. by []. Qed.
 
-Lemma lcmz_neq0 m n : (lcmz m n != 0) = (m != 0) && (n != 0).
+Lemma lcmz_neq0 m n : (lcmz m n != 0_int) = (m != 0) && (n != 0).
 Proof.
 have [->|m_neq0] := eqVneq m 0; first by rewrite lcm0z.
 have [->|n_neq0] := eqVneq n 0; first by rewrite lcmz0.
-by rewrite gt_eqF// [0 < _]lcmn_gt0 !absz_gt0 m_neq0 n_neq0.
+by rewrite gt_eqF// [0_int < _]lcmn_gt0 !absz_gt0 m_neq0 n_neq0.
 Qed.
 
 (* Coprime factors *)
@@ -603,7 +613,7 @@ case: egcdnP (coprime_egcdn `|n| m_gt0) => //= u v Duv _ co_uv; split.
 by rewrite coprimezE abszM absz_sg m_nz mul1n mulNr abszN abszMsign.
 Qed.
 
-Lemma Bezoutz m n : {u : int & {v : int | u * m + v * n = gcdz m n}}.
+Lemma Bezoutz m n : {u : int^r & {v : int^r | u * m + v * n = gcdz m n}}.
 Proof. by exists (egcdz m n).1, (egcdz m n).2; case: egcdzP. Qed.
 
 Lemma coprimezP m n :
@@ -620,7 +630,7 @@ Lemma Gauss_dvdz m n p :
 Proof. by move/Gauss_dvd <-; rewrite -abszM. Qed.
 
 Lemma Gauss_dvdzr m n p : coprimez m n -> (m %| n * p)%Z = (m %| p)%Z.
-Proof. by rewrite dvdzE abszM => /Gauss_dvdr->. Qed.
+Proof. by rewrite [LHS]dvdzE abszM => /Gauss_dvdr->. Qed.
 
 Lemma Gauss_dvdzl m n p : coprimez m p -> (m %| n * p)%Z = (m %| n)%Z.
 Proof. by rewrite mulrC; apply: Gauss_dvdzr. Qed.
@@ -649,14 +659,14 @@ Proof. by rewrite /coprimez /gcdz abszX; apply: coprimeXl. Qed.
 Lemma coprimezXr k m n : coprimez m n -> coprimez m (n ^+ k).
 Proof. by rewrite !(coprimez_sym m); apply: coprimezXl. Qed.
 
-Lemma coprimez_dvdl m n p : (m %| n)%N -> coprimez n p -> coprimez m p.
+Lemma coprimez_dvdl (m n : nat) p : (m %| n)%N -> coprimez n p -> coprimez m p.
 Proof. exact: coprime_dvdl. Qed.
 
-Lemma coprimez_dvdr m n p : (m %| n)%N -> coprimez p n -> coprimez p m.
+Lemma coprimez_dvdr (m n : nat) p : (m %| n)%N -> coprimez p n -> coprimez p m.
 Proof. exact: coprime_dvdr. Qed.
 
 Lemma dvdz_pexp2r m n k : (k > 0)%N -> (m ^+ k %| n ^+ k)%Z = (m %| n)%Z.
-Proof. by rewrite dvdzE !abszX; apply: dvdn_pexp2r. Qed.
+Proof. by rewrite [LHS]dvdzE !abszX; apply: dvdn_pexp2r. Qed.
 
 Section Chinese.
 
@@ -664,7 +674,7 @@ Section Chinese.
 (*   The chinese remainder theorem                                     *)
 (***********************************************************************)
 
-Variables m1 m2 : int.
+Variables m1 m2 : int^r.
 Hypothesis co_m12 : coprimez m1 m2.
 
 Lemma zchinese_remainder x y :
@@ -675,20 +685,20 @@ Proof. by rewrite !eqz_mod_dvd Gauss_dvdz. Qed.
 (*   A function that solves the chinese remainder problem              *)
 (***********************************************************************)
 
-Definition zchinese r1 r2 :=
+Definition zchinese (r1 r2 : int^r) : int :=
   r1 * m2 * (egcdz m1 m2).2 + r2 * m1 * (egcdz m1 m2).1.
 
 Lemma zchinese_modl r1 r2 : (zchinese r1 r2 = r1 %[mod m1])%Z.
 Proof.
 rewrite /zchinese; have [u v /= Duv _] := egcdzP m1 m2.
-rewrite -{2}[r1]mulr1 -((gcdz _ _ =P 1) co_m12) -Duv.
+rewrite -{2}[r1]mulr1 -((gcdz _ _ =P 1_int) co_m12) -Duv.
 by rewrite mulrDr mulrAC addrC (mulrAC r2) !mulrA !modzMDl.
 Qed.
 
 Lemma zchinese_modr r1 r2 : (zchinese r1 r2 = r2 %[mod m2])%Z.
 Proof.
 rewrite /zchinese; have [u v /= Duv _] := egcdzP m1 m2.
-rewrite -{2}[r2]mulr1 -((gcdz _ _ =P 1) co_m12) -Duv.
+rewrite -{2}[r2]mulr1 -((gcdz _ _ =P 1_int) co_m12) -Duv.
 by rewrite mulrAC modzMDl mulrAC addrC mulrDr !mulrA modzMDl.
 Qed.
 
@@ -700,12 +710,26 @@ Qed.
 
 End Chinese.
 
+End Intdiv.
+
+#[global] Hint Resolve dvdz0 dvd1z dvdzz dvdz_mull dvdz_mulr : core.
+
+Infix "%/" := divz : int_scope.
+Infix "%%" := modz : int_scope.
+Notation "d %| m" := (m \in dvdz d) : int_scope.
+Notation "m = n %[mod d ]" := (modz m d = modz n d) : int_scope.
+Notation "m == n %[mod d ]" := (modz m d == modz n d) : int_scope.
+Notation "m <> n %[mod d ]" := (modz m d <> modz n d) : int_scope.
+Notation "m != n %[mod d ]" := (modz m d != modz n d) : int_scope.
+
 Section ZpolyScale.
 
-Definition zcontents (p : {poly int}) : int :=
+Implicit Type p : {poly int^r}.
+
+Definition zcontents p : int :=
   sgz (lead_coef p) * \big[gcdn/0%N]_(i < size p) `|(p`_i)%R|%N.
 
-Lemma sgz_contents p : sgz (zcontents p) = sgz (lead_coef p).
+Lemma sgz_contents p : sgz (zcontents p : int^r) = sgz (lead_coef p).
 Proof.
 rewrite /zcontents mulrC sgzM sgz_id; set d := _%:Z.
 have [-> | nz_p] := eqVneq p 0; first by rewrite lead_coef0 mulr0.
@@ -713,10 +737,10 @@ rewrite gtr0_sgz ?mul1r // ltz_nat polySpred ?big_ord_recr //= -lead_coefE.
 by rewrite gcdn_gt0 orbC absz_gt0 lead_coef_eq0 nz_p.
 Qed.
 
-Lemma zcontents_eq0 p : (zcontents p == 0) = (p == 0).
-Proof. by rewrite -sgz_eq0 sgz_contents sgz_eq0 lead_coef_eq0. Qed.
+Lemma zcontents_eq0 p : (zcontents p == 0_int) = (p == 0).
+Proof. by rewrite -(@sgz_eq0 rint) sgz_contents sgz_eq0 lead_coef_eq0. Qed.
 
-Lemma zcontents0 : zcontents 0 = 0.
+Lemma zcontents0 : zcontents 0 = 0_int.
 Proof. by apply/eqP; rewrite zcontents_eq0. Qed.
 
 Lemma zcontentsZ a p : zcontents (a *: p) = a * zcontents p.
@@ -727,7 +751,7 @@ rewrite -lead_coefZ; congr (_ * _%:Z); rewrite size_scale //.
 by apply: eq_bigr => i _; rewrite coefZ abszM.
 Qed.
 
-Lemma zcontents_monic p : p \is monic -> zcontents p = 1.
+Lemma zcontents_monic p : p \is monic -> zcontents p = 1_int.
 Proof.
 move=> mon_p; rewrite /zcontents polySpred ?monic_neq0 //.
 by rewrite big_ord_recr /= -lead_coefE (monicP mon_p) gcdn1.
@@ -743,7 +767,7 @@ exact: a_dv_p.
 Qed.
 
 Lemma map_poly_divzK {a} p :
-  p \is a polyOver (dvdz a) -> a *: map_poly (divz^~ a) p = p.
+  p \is a polyOver (dvdz a) -> a *: map_poly (divz^~ a : _ -> int^r) p = p.
 Proof.
 move/polyOverP=> a_dv_p; apply/polyP=> i.
 by rewrite coefZ coef_map_id0 ?div0z // mulrC divzK.
@@ -753,13 +777,13 @@ Lemma polyOver_dvdzP a p :
   reflect (exists q, p = a *: q) (p \is a polyOver (dvdz a)).
 Proof.
 apply: (iffP idP) => [/map_poly_divzK | [q ->]].
-  by exists (map_poly (divz^~ a) p).
+  by exists (map_poly (divz^~ a : _ -> int^r) p).
 by apply/polyOverP=> i; rewrite coefZ dvdz_mulr.
 Qed.
 
-Definition zprimitive p := map_poly (divz^~ (zcontents p)) p.
+Definition zprimitive p := map_poly (divz^~ (zcontents p) : _ -> int^r) p.
 
-Lemma zpolyEprim p : p = zcontents p *: zprimitive p.
+Lemma zpolyEprim p : p = (zcontents p : int^r) *: zprimitive p.
 Proof. by rewrite map_poly_divzK // -dvdz_contents. Qed.
 
 Lemma zprimitive0 : zprimitive 0 = 0.
@@ -782,14 +806,15 @@ Qed.
 Lemma sgz_lead_primitive p : sgz (lead_coef (zprimitive p)) = (p != 0).
 Proof.
 have [-> | nz_p] := eqVneq; first by rewrite zprimitive0 lead_coef0.
-apply: (@mulfI _ (sgz (zcontents p))); first by rewrite sgz_eq0 zcontents_eq0.
+apply: (@mulfI _ (sgz (zcontents p : int^r))).
+  by rewrite sgz_eq0 zcontents_eq0.
 by rewrite -sgzM mulr1 -lead_coefZ -zpolyEprim sgz_contents.
 Qed.
 
 Lemma zcontents_primitive p : zcontents (zprimitive p) = (p != 0).
 Proof.
 have [-> | nz_p] := eqVneq; first by rewrite zprimitive0 zcontents0.
-apply: (@mulfI _ (zcontents p)); first by rewrite zcontents_eq0.
+apply: (@mulfI _ (zcontents p : int^r)); first by rewrite zcontents_eq0.
 by rewrite mulr1 -zcontentsZ -zpolyEprim.
 Qed.
 
@@ -835,16 +860,16 @@ have{Dp} /negPf->: q != 0.
 by case: b a => [[|[|b]] | [|b]] [[|[|a]] | [|a]] //; rewrite mulr0.
 Qed.
 
-Lemma zcontentsM p q : zcontents (p * q) = zcontents p * zcontents q.
+Lemma zcontentsM p q : zcontents (p * q) = zcontents p *_int zcontents q.
 Proof.
 have [-> | nz_p] := eqVneq p 0; first by rewrite !(mul0r, zcontents0).
 have [-> | nz_q] := eqVneq q 0; first by rewrite !(mulr0, zcontents0).
-rewrite -[zcontents q]mulr1 {1}[p]zpolyEprim {1}[q]zpolyEprim.
-rewrite -scalerAl -scalerAr !zcontentsZ; congr (_ * (_ * _)).
+rewrite -[zcontents q](@mulr1 rint) {1}[p]zpolyEprim {1}[q]zpolyEprim.
+rewrite -scalerAl -scalerAr !zcontentsZ; congr (_ *_int (_ * _)).
 rewrite [zcontents _]intEsg sgz_contents lead_coefM sgzM !sgz_lead_primitive.
 apply/eqP; rewrite nz_p nz_q !mul1r [_ == _]eqn_leq absz_gt0 zcontents_eq0.
 rewrite mulf_neq0 ?zprimitive_eq0 // andbT leqNgt.
-apply/negP=> /pdivP[r r_pr r_dv_d]; pose to_r : int -> 'F_r := intr.
+apply/negP=> /pdivP[r r_pr r_dv_d]; pose to_r : int^r -> 'F_r := intr.
 have nz_prim_r q1: q1 != 0 -> map_poly to_r (zprimitive q1) != 0.
   move=> nz_q1; apply: contraTneq (prime_gt1 r_pr) => r_dv_q1.
   rewrite -leqNgt dvdn_leq // -(dvdzE r true) -nz_q1 -zcontents_primitive.
@@ -858,34 +883,33 @@ rewrite [_ * _]zpolyEprim [zcontents _]intEsign mulrC -scalerA map_polyZ /=.
 by rewrite scale_poly_eq0 -val_eqE /= val_Fp_nat ?(eqnP r_dv_d).
 Qed.
 
-
 Lemma zprimitiveM p q : zprimitive (p * q) = zprimitive p * zprimitive q.
 Proof.
 have [pq_0|] := eqVneq (p * q) 0.
   rewrite pq_0; move/eqP: pq_0; rewrite mulf_eq0.
   by case/pred2P=> ->; rewrite !zprimitive0 (mul0r, mulr0).
-rewrite -zcontents_eq0 -polyC_eq0 => /mulfI; apply; rewrite !mul_polyC.
+rewrite -zcontents_eq0 -(@polyC_eq0 rint) => /mulfI; apply; rewrite !mul_polyC.
 by rewrite -zpolyEprim zcontentsM -scalerA scalerAr scalerAl -!zpolyEprim.
 Qed.
 
 Lemma dvdpP_int p q : p %| q -> {r | q = zprimitive p * r}.
 Proof.
 case/Pdiv.Idomain.dvdpP/sig2_eqW=> [[c r] /= nz_c Dpr].
-exists (zcontents q *: zprimitive r); rewrite -scalerAr.
+exists ((zcontents q : int^r) *: zprimitive r); rewrite -scalerAr.
 by rewrite -zprimitiveM mulrC -Dpr zprimitiveZ // -zpolyEprim.
 Qed.
 
-Local Notation pZtoQ := (map_poly (intr : int -> rat)).
+Local Notation pZtoQ := (map_poly (intr : _ -> rat)).
 
 Lemma size_rat_int_poly p : size (pZtoQ p) = size p.
 Proof. by apply: size_map_inj_poly; first apply: intr_inj. Qed.
 
 Lemma rat_poly_scale (p : {poly rat}) :
-  {q : {poly int} & {a | a != 0 & p = a%:~R^-1 *: pZtoQ q}}.
+  {q : {poly int^r} & {a | a != 0 & p = a%:~R^-1 *: pZtoQ q}}.
 Proof.
-pose a := \prod_(i < size p) denq p`_i.
+pose a := \prod_(i < size p) (denq : _ -> int^r) p`_i.
 have nz_a: a != 0 by apply/prodf_neq0=> i _; apply: denq_neq0.
-exists (map_poly numq (a%:~R *: p)), a => //.
+exists (map_poly (numq : _ -> int^r) (a%:~R *: p)), a => //.
 apply: canRL (scalerK _) _; rewrite ?intr_eq0 //.
 apply/polyP=> i; rewrite !(coefZ, coef_map_id0) // numqK // Qint_def mulrC.
 have [ltip | /(nth_default 0)->] := ltnP i (size p); last by rewrite mul0r.
@@ -903,9 +927,9 @@ rewrite -[a]intz scaler_int rmorphMz -scaler_int /= Dq Dr1.
 by rewrite -scalerAl -rmorphM scalerKV ?intr_eq0.
 Qed.
 
-Lemma dvdpP_rat_int p q :
+Lemma dvdpP_rat_int (p : {poly rat}) q :
     p %| pZtoQ q ->
-  {p1 : {poly int} & {a | a != 0 & p = a *: pZtoQ p1} & {r | q = p1 * r}}.
+  {p1 : {poly int^r} & {a | a != 0 & p = a *: pZtoQ p1} & {r | q = p1 * r}}.
 Proof.
 have{p} [p [a nz_a ->]] := rat_poly_scale p.
 rewrite dvdpZl ?invr_eq0 ?intr_eq0 // dvdp_rat_int => dv_p_q.
@@ -921,10 +945,10 @@ End ZpolyScale.
 
 (* Integral spans. *)
 
-Lemma int_Smith_normal_form m n (M : 'M[int]_(m, n)) :
-  {L : 'M[int]_m & L \in unitmx &
-  {R : 'M[int]_n & R \in unitmx &
-  {d : seq int | sorted dvdz d &
+Lemma int_Smith_normal_form m n (M : 'M[int^r]_(m, n)) :
+  {L : 'M[int^r]_m & L \in unitmx &
+  {R : 'M[int^r]_n & R \in unitmx &
+  {d : seq int^r | sorted dvdz d &
    M = L *m (\matrix_(i, j) (d`_i *+ (i == j :> nat))) *m R}}}.
 Proof.
 move: {2}_.+1 (ltnSn (m + n)) => mn.
@@ -955,10 +979,10 @@ wlog [j a'Mij]: m n M i Da le_mn / {j | ~~ (a %| M i j)%Z}; last first.
     rewrite -ltnS (leq_trans _ leA) // ltnS ltn_neqAle andbC.
     rewrite dvdn_leq ?absz_gt0 ? dvdn_gcdl //=.
     by rewrite (contraNneq _ a'Mij) ?dvdzE // => <-; apply: dvdn_gcdr.
-  pose t2 := [fun j : 'I_2 => [tuple _; _]`_j : int]; pose a1 := M i 1.
-  pose Uul := \matrix_(k, j) t2 (t2 u (- (a1 %/ b)%Z) j) (t2 v (a %/ b)%Z j) k.
+  pose t2 := [fun j : 'I_2 => [tuple _; _]`_j : int^r]; pose a1 := M i 1.
+  pose Uul := \matrix_(k, j) t2 (t2 u (-_int (a1 %/ b)%Z) j) (t2 v (a %/ b)%Z j) k.
   pose U : 'M_(2 + n) := block_mx Uul 0 0 1%:M; pose M1 := M *m U.
-  have{nz_a} nz_b: b != 0 by rewrite gcdz_eq0 (negPf nz_a).
+  have{nz_a} nz_b: b != 0_int by rewrite gcdz_eq0 (negPf nz_a).
   have uU: U \in unitmx.
     rewrite unitmxE det_ublock det1 (expand_det_col _ 0) big_ord_recl big_ord1.
     do 2!rewrite /cofactor [row' _ _]mx11_scalar !mxE det_scalar1 /=.
@@ -981,7 +1005,7 @@ move=> {A leA}IHa; wlog Di: i M Da / i = 0; last rewrite {i}Di in Da.
 without loss /forallP a_dvM0: / [forall j, a %| M 0%R j]%Z.
   case: (altP forallP) => [_ IH|/forallPn/sigW/IHa IH _]; exact: IH.
 without loss{Da a_dvM0} Da: M / forall j, M 0 j = a.
-  pose Uur := col' 0 (\row_j (1 - (M 0%R j %/ a)%Z)).
+  pose Uur := col' 0 (\row_j (1 -_int (M 0%R j %/ a)%Z)).
   pose U : 'M_(1 + n) := block_mx 1 Uur 0 1%:M; pose M1 := M *m U.
   have uU: U \in unitmx by rewrite unitmxE det_ublock !det1 mulr1.
   case/(_ (M *m U)) => [j | L uL [R uR [d dvD dM]]].
@@ -1041,7 +1065,8 @@ pose S := \matrix_(i < m, j < _) coord (vbasis <<s>>) j s`_i.
 pose r := \rank S; pose k := (m - r)%N; pose Em := erefl m; pose Ek := erefl k.
 have Dm: (m = k + r)%N by rewrite subnK ?rank_leq_row.
 have [K kerK]: {K : 'M_(k, m) | map_mx intr K == kermx S}%MS.
-  pose B := row_base (kermx S); pose d := \prod_ij denq (B ij.1 ij.2).
+  pose B := row_base (kermx S).
+  pose d := \prod_ij (denq : _ -> int^r) (B ij.1 ij.2).
   exists (castmx (mxrank_ker S, Em) (map_mx numq (intr d *: B))).
   rewrite /k; case: _ / (mxrank_ker S); set B1 := map_mx _ _.
   have ->: B1 = (intr d *: B).
@@ -1083,8 +1108,8 @@ have uS: row_full S.
   rewrite -!tnth_nth (coord_span (vbasis_mem (mem_tnth j1 _))) linear_sum.
   by apply: eq_bigr => i _; rewrite !mxE (tnth_nth 0) !linearZ.
 have eqST: (S :=: T)%MS by apply/eqmxP; rewrite -{1}defS !submxMl.
-case Zv: (map_mx denq (vv *m pinvmx T) == const_mx 1).
-  pose a := map_mx numq (vv *m pinvmx T) *m dsubmx Gud.
+case Zv: (map_mx denq (vv *m pinvmx T) == const_mx 1_int).
+  pose a := map_mx (numq : _ -> int^r) (vv *m pinvmx T) *m dsubmx Gud.
   left; exists [ffun j => a 0 j].
   transitivity (\sum_j (map_mx intr a *m S) 0 j *: (vbasis <<s>>)`_j).
     rewrite {1}(coord_vbasis s_v); apply: eq_bigr => j _; congr (_ *: _).

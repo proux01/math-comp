@@ -47,8 +47,8 @@ Declare Scope algC_expanded_scope.
 Import GRing.Theory Num.Theory.
 Local Open Scope ring_scope.
 
-Local Notation ZtoQ := (intr : int -> rat).
-Local Notation ZtoC := (intr : int -> algC).
+Local Notation ZtoQ := (intr : int^r -> rat).
+Local Notation ZtoC := (intr : int^r -> algC).
 Local Notation QtoC := (ratr : rat -> algC).
 
 Local Notation intrp := (map_poly intr).
@@ -337,9 +337,9 @@ Qed.
 Lemma Cint_span_zmod_closed s : zmod_closed (Cint_span s).
 Proof.
 have sP := Cint_spanP (in_tuple s); split=> [|_ _ /sP[x ->] /sP[y ->]].
-  by apply/sP; exists 0; rewrite big1 // => i; rewrite ffunE.
-apply/sP; exists (x - y); rewrite -sumrB; apply: eq_bigr => i _.
-by rewrite !ffunE raddfB.
+  by apply/sP; exists [ffun=> 0_int]; rewrite big1 // => i; rewrite ffunE.
+apply/sP; exists ((x : int^r ^ _) - (y : int^r ^ _)).
+by rewrite -sumrB; apply: eq_bigr => i _;  rewrite !ffunE raddfB.
 Qed.
 HB.instance Definition _ s := GRing.isZmodClosed.Build _ (Cint_span s)
   (Cint_span_zmod_closed s).

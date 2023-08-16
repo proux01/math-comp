@@ -106,8 +106,8 @@ End Field.
 
 End CyclotomicPoly.
 
-Local Notation ZtoQ := (intr : int -> rat).
-Local Notation ZtoC := (intr : int -> algC).
+Local Notation ZtoQ := (intr : int^r -> rat).
+Local Notation ZtoC := (intr : int^r -> algC).
 Local Notation QtoC := (ratr : rat -> algC).
 
 Local Notation intrp := (map_poly intr).
@@ -132,7 +132,7 @@ Qed.
 
 (* (Integral) Cyclotomic polynomials. *)
 
-Definition Cyclotomic n : {poly int} :=
+Definition Cyclotomic n : {poly int^r} :=
   let: exist z _ := C_prim_root_exists (ltn0Sn n.-1) in
   map_poly Num.floor (cyclotomic z n).
 

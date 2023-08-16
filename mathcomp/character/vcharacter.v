@@ -53,7 +53,7 @@ Definition Zchar : {pred 'CF(B)} :=
 
 Lemma cfun0_zchar : 0 \in Zchar.
 Proof.
-rewrite inE mem0v; apply/sumboolP; exists 0.
+rewrite inE mem0v; apply/sumboolP; exists [ffun=> 0_int].
 by rewrite big1 // => i _; rewrite ffunE.
 Qed.
 
@@ -61,7 +61,8 @@ Fact Zchar_zmod : zmod_closed Zchar.
 Proof.
 split; first exact: cfun0_zchar.
 move=> phi xi /andP[Aphi /sumboolP[a Da]] /andP[Axi /sumboolP[b Db]].
-rewrite inE rpredB // Da Db -sumrB; apply/sumboolP; exists (a - b).
+rewrite inE rpredB // Da Db -sumrB; apply/sumboolP.
+exists ((a : int^r ^ _) - (b : int^r ^ _)).
 by apply: eq_bigr => i _; rewrite -mulrzBr !ffunE.
 Qed.
 HB.instance Definition _ := GRing.isZmodClosed.Build (classfun B) Zchar
