@@ -47,9 +47,9 @@ Declare Scope algC_expanded_scope.
 Import GRing.Theory Num.Theory.
 Local Open Scope ring_scope.
 
-Local Notation ZtoQ := (intr : int^r -> rat).
+Local Notation ZtoQ := (intr : int^r -> rat^r).
 Local Notation ZtoC := (intr : int^r -> algC).
-Local Notation QtoC := (ratr : rat -> algC).
+Local Notation QtoC := (ratr : rat^r -> algC).
 
 Local Notation intrp := (map_poly intr).
 Local Notation pZtoQ := (map_poly ZtoQ).
@@ -81,18 +81,18 @@ suffices /sig_eqW[[n [|px [|pz []]]]// [Dpx Dpz]]:
   by rewrite map_comp_poly horner_comp -Dpz.
 have [rx nz_rx rx0] := r_exists x.
 have [rz nz_rz rz0] := r_exists (- z).
-have char0_Q: [char rat] =i pred0 by apply: char_num.
+have char0_Q: [char rat^r] =i pred0 by apply: char_num.
 have [n [[pz Dpz] [px Dpx]]] := char0_PET nz_rz rz0 nz_rx rx0 char0_Q.
 by exists (n, [:: px; - pz]); rewrite /= !raddfN hornerN -[z]opprK Dpz Dpx.
 Qed.
 
 Lemma num_field_exists (s : seq algC) :
-  {Qs : fieldExtType rat & {QsC : {rmorphism Qs -> algC}
+  {Qs : fieldExtType rat^r & {QsC : {rmorphism Qs -> algC}
    & {s1 : seq Qs | map QsC s1 = s & <<1 & s1>>%VS = fullv}}}.
 Proof.
 have [z /sig_eqW[a Dz] /sig_eqW[ps Ds]] := algC_PET s.
 suffices [Qs [QsC [z1 z1C z1gen]]]:
-  {Qs : fieldExtType rat & {QsC : {rmorphism Qs -> algC} &
+  {Qs : fieldExtType rat^r & {QsC : {rmorphism Qs -> algC} &
      {z1 : Qs | QsC z1 = z & forall xx, exists p, fieldExt_horner z1 p = xx}}}.
 - set inQs := fieldExt_horner z1 in z1gen *; pose s1 := map inQs ps.
   have inQsK p: QsC (inQs p) = (pQtoC p).[z].
@@ -133,7 +133,7 @@ apply: decP (x1 \in <<in_tuple s1>>%VS) _; rewrite /in_Crat_span size_map.
 apply: (iffP idP) => [/coord_span-> | [a Dx]].
   move: (coord _) => a; exists [ffun i => a i x1]; rewrite rmorph_sum /=.
   by apply: eq_bigr => i _; rewrite ffunE (nth_map 0).
-have{Dx} ->: x1 = \sum_i a i *: s1`_i.
+have{Dx} ->: x1 = \sum_i (a i : rat^r) *: s1`_i.
   apply: (fmorph_inj QxsC); rewrite Dx rmorph_sum /=.
   by apply: eq_bigr => i _; rewrite QxsC_Z (nth_map 0).
 by apply: memv_suml => i _; rewrite memvZ ?memv_span ?mem_nth.
@@ -146,7 +146,7 @@ Proof. exact: sumboolP. Qed.
 Lemma mem_Crat_span s : {subset s <= Crat_span s}.
 Proof.
 move=> _ /(nthP 0)[ix ltxs <-]; pose i0 := Ordinal ltxs.
-apply/Crat_spanP; exists [ffun i => (i == i0)%:R].
+apply/Crat_spanP; exists [ffun i => (i == i0)%:R : rat^r].
 rewrite (bigD1_ord i0) //= ffunE eqxx // rmorph1 mul1r.
 by rewrite big1 ?addr0 // => i; rewrite ffunE rmorph_nat mulr_natl lift_eqF.
 Qed.
@@ -154,10 +154,10 @@ Qed.
 Fact Crat_span_zmod_closed s : zmod_closed (Crat_span s).
 Proof.
 split=> [|_ _ /Crat_spanP[x ->] /Crat_spanP[y ->]].
-  apply/Crat_spanP; exists 0.
+  apply/Crat_spanP; exists [ffun=> 0_rat].
   by apply/esym/big1=> i _; rewrite ffunE rmorph0 mul0r.
-apply/Crat_spanP; exists (x - y); rewrite -sumrB; apply: eq_bigr => i _.
-by rewrite -mulrBl -rmorphB !ffunE.
+apply/Crat_spanP; exists ((x : rat^r ^ _) - (y : rat^r ^ _)).
+by rewrite -sumrB; apply: eq_bigr => i _; rewrite -mulrBl -rmorphB !ffunE.
 Qed.
 HB.instance Definition _ s := GRing.isZmodClosed.Build _ (Crat_span s)
   (Crat_span_zmod_closed s).
@@ -166,14 +166,14 @@ Section MoreAlgCaut.
 
 Implicit Type rR : unitRingType.
 
-Lemma alg_num_field (Qz : fieldExtType rat) a : a%:A = ratr a :> Qz.
+Lemma alg_num_field (Qz : fieldExtType rat^r) a : a%:A = ratr a :> Qz.
 Proof. by rewrite -in_algE fmorph_eq_rat. Qed.
 
-Lemma rmorphZ_num (Qz : fieldExtType rat) rR (f : {rmorphism Qz -> rR}) a x :
+Lemma rmorphZ_num (Qz : fieldExtType rat^r) rR (f : {rmorphism Qz -> rR}) a x :
   f (a *: x) = ratr a * f x.
 Proof. by rewrite -mulr_algl rmorphM /= alg_num_field fmorph_rat. Qed.
 
-Lemma fmorph_numZ (Qz1 Qz2 : fieldExtType rat) (f : {rmorphism Qz1 -> Qz2}) :
+Lemma fmorph_numZ (Qz1 Qz2 : fieldExtType rat^r) (f : {rmorphism Qz1 -> Qz2}) :
   scalable f.
 Proof. by move=> a x; rewrite rmorphZ_num -alg_num_field mulr_algl. Qed.
 
@@ -181,7 +181,7 @@ End MoreAlgCaut.
 
 Section NumFieldProj.
 
-Variables (Qn : fieldExtType rat) (QnC : {rmorphism Qn -> algC}).
+Variables (Qn : fieldExtType rat^r) (QnC : {rmorphism Qn -> algC}).
 
 Lemma Crat_spanZ b a : {in Crat_span b, forall x, ratr a * x \in Crat_span b}.
 Proof.
@@ -199,8 +199,8 @@ Proof.
 pose b := vbasis {:Qn}.
 have Qn_bC (u : {x | x \in Crat_span (map QnC b)}): {y | QnC y = sval u}.
   case: u => _ /= /Crat_spanP/sig_eqW[a ->].
-  exists (\sum_i a i *: b`_i); rewrite rmorph_sum /=; apply: eq_bigr => i _.
-  by rewrite rmorphZ_num (nth_map 0) // -(size_map QnC).
+  exists (\sum_i (a i : rat^r) *: b`_i); rewrite rmorph_sum /=.
+  by apply: eq_bigr => i _; rewrite rmorphZ_num (nth_map 0) // -(size_map QnC).
 pose CtoQn x := oapp (fun u => sval (Qn_bC u)) 0 (insub x).
 suffices QnCK: cancel QnC CtoQn by exists CtoQn; rewrite // -(rmorph0 QnC) /=.
 move=> x; rewrite /CtoQn insubT => /= [|Qn_x]; last first.
@@ -225,7 +225,7 @@ have nu0m : multiplicative nu0.
 pose nu0aM := GRing.isAdditive.Build Qn Qn nu0 nu0a.
 pose nu0mM := GRing.isMultiplicative.Build Qn Qn nu0 nu0m.
 pose nu0RM : GRing.RMorphism.type _ _ := HB.pack nu0 nu0aM nu0mM.
-pose nu0lM := GRing.isScalable.Build rat Qn Qn *:%R nu0 (fmorph_numZ nu0RM).
+pose nu0lM := GRing.isScalable.Build rat^r Qn Qn *:%R nu0 (fmorph_numZ nu0RM).
 pose nu0LRM : {lrmorphism _ -> _} := HB.pack nu0 nu0aM nu0mM nu0lM.
 by exists nu0LRM.
 Qed.
@@ -240,7 +240,7 @@ Qed.
 
 End NumFieldProj.
 
-Lemma restrict_aut_to_normal_num_field (Qn : splittingFieldType rat)
+Lemma restrict_aut_to_normal_num_field (Qn : splittingFieldType rat^r)
   (QnC : {rmorphism Qn -> algC})(nu : {rmorphism algC -> algC}) :
     {nu0 : {lrmorphism Qn -> Qn} | {morph QnC : x / nu0 x >-> nu x}}.
 Proof.
@@ -285,10 +285,10 @@ have [Qz [QzC [z1s Dz_s _]]] := num_field_exists z_s.
 have sz_z1s: size z1s = #|IzT| by rewrite -(size_map QzC) Dz_s size_map cardE.
 have xv j: {x | coord b j v = QzC x}.
   apply: sig_eqW; have /Crat_spanP[x ->] := forallP Qz_v j.
-  exists (\sum_ij x ij *: z1s`_ij); rewrite rmorph_sum.
+  exists (\sum_ij (x ij : rat^r) *: z1s`_ij); rewrite rmorph_sum.
   apply: eq_bigr => ij _; rewrite mulrAC.
   apply: canLR (mulfK _) _; first by rewrite intr_eq0 denq_neq0.
-  rewrite mulrzr -rmorphMz scalerMzl -(mulrzr (x _)) -numqE scaler_int.
+  rewrite mulrzr -rmorphMz scalerMzl -(mulrzr (x _ : rat^r)) -numqE scaler_int.
   by rewrite rmorphMz mulrzl -(nth_map _ 0) ?Dz_s // -(size_map QzC) Dz_s.
 pose sz := [tuple [ffun j => z1s`_(rank2 j i)] | i < m].
 have [Zsv | Zs'v] := dec_Qint_span sz [ffun j => sval (xv j)].
@@ -345,11 +345,11 @@ HB.instance Definition _ s := GRing.isZmodClosed.Build _ (Cint_span s)
   (Cint_span_zmod_closed s).
 
 (* Automorphism extensions. *)
-Lemma extend_algC_subfield_aut (Qs : fieldExtType rat)
+Lemma extend_algC_subfield_aut (Qs : fieldExtType rat^r)
   (QsC : {rmorphism Qs -> algC}) (phi : {rmorphism Qs -> Qs}) :
   {nu : {rmorphism algC -> algC} | {morph QsC : x / phi x >-> nu x}}.
 Proof.
-pose numF_inj (Qr : fieldExtType rat) := {rmorphism Qr -> algC}.
+pose numF_inj (Qr : fieldExtType rat^r) := {rmorphism Qr -> algC}.
 pose subAut := {Qr : _ & numF_inj Qr * {lrmorphism Qr -> Qr}}%type.
 pose SubAut := existT _ _ (_, _) : subAut.
 pose Sdom (mu : subAut) := projT1 mu.
@@ -547,7 +547,8 @@ Lemma Cint_rat_Aint z : z \in Crat -> z \in Aint -> z \in Num.int.
 Proof.
 case/CratP=> a ->{z} /polyOverP/(_ 0%N).
 have [p [Dp mon_p] dv_p] := minCpolyP (ratr a); rewrite Dp coef_map.
-suffices /eqP->: p == 'X - a%:P by rewrite polyseqXsubC /= rmorphN rpredN.
+suffices /eqP->: p == 'X - (a : rat^r)%:P.
+  by rewrite polyseqXsubC /= rmorphN rpredN.
 rewrite -eqp_monic ?monicXsubC // irredp_XsubC //.
   by rewrite -(size_map_poly QtoC) -Dp neq_ltn size_minCpoly orbT.
 by rewrite -dv_p fmorph_root root_XsubC.

@@ -39,7 +39,7 @@ Import Order.TTheory GroupScope GRing.Theory Num.Theory.
 Local Open Scope ring_scope.
 
 Lemma group_num_field_exists (gT : finGroupType) (G : {group gT}) :
-  {Qn : splittingFieldType rat & galois 1 {:Qn} &
+  {Qn : splittingFieldType rat^r & galois 1 {:Qn} &
     {QnC : {rmorphism Qn -> algC}
          & forall nuQn : argumentType [in 'Gal({:Qn} / 1)],
               {nu : {rmorphism algC -> algC} |

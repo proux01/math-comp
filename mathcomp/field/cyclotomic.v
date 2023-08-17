@@ -106,9 +106,9 @@ End Field.
 
 End CyclotomicPoly.
 
-Local Notation ZtoQ := (intr : int^r -> rat).
+Local Notation ZtoQ := (intr : int^r -> rat^r).
 Local Notation ZtoC := (intr : int^r -> algC).
-Local Notation QtoC := (ratr : rat -> algC).
+Local Notation QtoC := (ratr : rat^r -> algC).
 
 Local Notation intrp := (map_poly intr).
 Local Notation pZtoQ := (map_poly ZtoQ).

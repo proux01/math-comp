@@ -463,14 +463,14 @@ Lemma divzDr m n d :
   (d %| n)%Z -> ((m + n) %/ d)%Z = (m %/ d)%Z +_int (n %/ d)%Z.
 Proof. by move=> dv_n; rewrite addrC divzDl // addrC. Qed.
 
-Lemma Qint_dvdz m d : (d %| m)%Z -> (m%:~R / d%:~R : rat) \is a Num.int.
+Lemma Qint_dvdz m d : (d %| m)%Z -> (m%:~R / d%:~R : rat^r) \is a Num.int.
 Proof.
 case/dvdzP=> z ->; rewrite rmorphM /=; have [->|dn0] := eqVneq d 0.
   by rewrite mulr0 mul0r.
 by rewrite mulfK ?intr_eq0.
 Qed.
 
-Lemma Qnat_dvd (m d : nat) : (d %| m)%N -> (m%:R / d%:R : rat) \is a Num.nat.
+Lemma Qnat_dvd (m d : nat) : (d %| m)%N -> (m%:R / d%:R : rat^r) \is a Num.nat.
 Proof. by move=> h; rewrite natrEint divr_ge0 ?ler0n // !pmulrn Qint_dvdz. Qed.
 
 (* Greatest common divisor *)
@@ -899,12 +899,12 @@ exists ((zcontents q : int^r) *: zprimitive r); rewrite -scalerAr.
 by rewrite -zprimitiveM mulrC -Dpr zprimitiveZ // -zpolyEprim.
 Qed.
 
-Local Notation pZtoQ := (map_poly (intr : _ -> rat)).
+Local Notation pZtoQ := (map_poly (intr : _ -> rat^r)).
 
 Lemma size_rat_int_poly p : size (pZtoQ p) = size p.
 Proof. by apply: size_map_inj_poly; first apply: intr_inj. Qed.
 
-Lemma rat_poly_scale (p : {poly rat}) :
+Lemma rat_poly_scale (p : {poly rat^r}) :
   {q : {poly int^r} & {a | a != 0 & p = a%:~R^-1 *: pZtoQ q}}.
 Proof.
 pose a := \prod_(i < size p) (denq : _ -> int^r) p`_i.
@@ -927,7 +927,7 @@ rewrite -[a]intz scaler_int rmorphMz -scaler_int /= Dq Dr1.
 by rewrite -scalerAl -rmorphM scalerKV ?intr_eq0.
 Qed.
 
-Lemma dvdpP_rat_int (p : {poly rat}) q :
+Lemma dvdpP_rat_int (p : {poly rat^r}) q :
     p %| pZtoQ q ->
   {p1 : {poly int^r} & {a | a != 0 & p = a *: pZtoQ p1} & {r | q = p1 * r}}.
 Proof.
@@ -1054,7 +1054,7 @@ Qed.
 Definition inIntSpan (V : zmodType) m (s : m.-tuple V) v :=
   exists a : int ^ m, v = \sum_(i < m) s`_i *~ a i.
 
-Lemma dec_Qint_span (vT : vectType rat) m (s : m.-tuple vT) v :
+Lemma dec_Qint_span (vT : vectType rat^r) m (s : m.-tuple vT) v :
   decidable (inIntSpan s v).
 Proof.
 have s_s (i : 'I_m): s`_i \in <<s>>%VS by rewrite memv_span ?memt_nth.
@@ -1077,7 +1077,7 @@ have [K kerK]: {K : 'M_(k, m) | map_mx intr K == kermx S}%MS.
 have [L _ [G uG [D _ defK]]] := int_Smith_normal_form K.
 pose Gud := castmx (Dm, Em) G; pose G'lr := castmx (Em, Dm) (invmx G).
 have{K L D defK kerK} kerGu: map_mx intr (usubmx Gud) *m S = 0.
-  pose Kl : 'M[rat]_k:= map_mx intr (lsubmx (castmx (Ek, Dm) (K *m invmx G))).
+  pose Kl : 'M[rat^r]_k:= map_mx intr (lsubmx (castmx (Ek, Dm) (K *m invmx G))).
   have{} defK: map_mx intr K = row_mx Kl 0 *m map_mx intr Gud.
     rewrite -[K](mulmxKV uG) -{2}[G](castmxK Dm Em) -/Gud.
     rewrite -[K *m _](castmxK Ek Dm) map_mxM map_castmx.

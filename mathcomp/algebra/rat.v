@@ -50,8 +50,12 @@ HB.instance Definition _ := rat_isSub.
 #[hnf] HB.instance Definition _ := [Equality of rat by <:].
 HB.instance Definition _ := [Countable of rat by <:].
 
-Definition numq x := nosimpl ((valq x).1).
-Definition denq x := nosimpl ((valq x).2).
+Definition rrat := rat.
+Canonical alias_rat := Aliased rat rrat.
+Identity Coercion rrat_rat : rrat >-> rat.
+
+Definition numq (x : rat^r) := nosimpl ((valq x).1).
+Definition denq (x : rat^r) := nosimpl ((valq x).2).
 
 Lemma denq_gt0 x : 0_int < denq x.
 Proof. by rewrite /denq; case: x=> [[a b] /= /andP []]. Qed.
@@ -285,7 +289,7 @@ case: x => n d /=; have [d_eq0 | d_neq0] := eqVneq d 0.
 by rewrite {2}[(_, _)]valq_frac //; constructor; rewrite scalq_eq0.
 Qed.
 
-Lemma rat_eqE x y : (x == y) = (numq x == numq y) && (denq x == denq y).
+Lemma rat_eqE (x y : rat) : (x == y) = (numq x == numq y) && (denq x == denq y).
 Proof.
 rewrite -val_eqE [val x]surjective_pairing [val y]surjective_pairing /=.
 by rewrite xpair_eqE.
@@ -300,7 +304,8 @@ Proof. by rewrite gtr0_norm. Qed.
 Lemma absz_denq x : `|denq x|%N = denq x :> int.
 Proof. by rewrite abszE normr_denq. Qed.
 
-Lemma rat_eq x y : (x == y) = (numq x *_int denq y == numq y *_int denq x).
+Lemma rat_eq (x y : rat) :
+  (x == y) = (numq x *_int denq y == numq y *_int denq x).
 Proof.
 symmetry; rewrite rat_eqE andbC.
 have [->|] /= := eqVneq (denq _); first by rewrite (inj_eq (mulIf _)).
@@ -427,7 +432,8 @@ rewrite !addq_subdefE /oppq_subdef //= mulNr addNr; apply/eqP.
 by rewrite fracq_eq ?mulf_neq0 ?denq_neq0 //= !mul0r.
 Qed.
 
-HB.instance Definition _ := GRing.isZmodule.Build rat addqA addqC add0q addNq.
+HB.instance Definition _ := Countable.on rrat.
+HB.instance Definition _ := GRing.isZmodule.Build rrat addqA addqC add0q addNq.
 
 Definition mulq_subdef (x y : int^r * int^r) :=
   let: (x1, x2) := x in
@@ -498,19 +504,19 @@ Qed.
 
 Fact nonzero1q : oneq != zeroq. Proof. by []. Qed.
 
-HB.instance Definition _ :=
-  GRing.Zmodule_isComRing.Build rat mulqA mulqC mul1q mulq_addl nonzero1q.
+HB.instance Definition _ := GRing.Zmodule_isComRing.Build rrat
+  mulqA mulqC mul1q mulq_addl nonzero1q.
 
-Fact mulVq x : x != 0 -> mulq (invq x) x = 1.
+Fact mulVq (x : rat^r) : x != 0 -> mulq (invq x) x = 1_rat.
 Proof.
 rewrite -[x]valqK -[0]valqK fracq_eq ?denq_neq0 //= mulr1 mul0r=> nx0.
 rewrite !(mulq_frac, invq_frac, mulq_subdefE) ?denq_neq0 // -[1]valqK.
 by apply/eqP; rewrite fracq_eq ?mulf_neq0 ?denq_neq0 //= mulr1 mul1r mulrC.
 Qed.
 
-Fact invq0 : invq 0 = 0. Proof. exact/eqP. Qed.
+Fact invq0 : invq 0_rat = 0_rat. Proof. exact/eqP. Qed.
 
-HB.instance Definition _ := GRing.ComRing_isField.Build rat mulVq invq0.
+HB.instance Definition _ := GRing.ComRing_isField.Build rrat mulVq invq0.
 
 Lemma numq_eq0 x : (numq x == 0_int) = (x == 0).
 Proof.
@@ -519,7 +525,7 @@ rewrite -[x]valqK fracq_eq0; case: fracqP=> /= [|k {}x k0].
 by rewrite !mulf_eq0 (negPf k0) /= denq_eq0 orbF.
 Qed.
 
-Notation "n %:Q" := (n%:~R : rat) : ring_scope.
+Notation "n %:Q" := (1 *~_rat n) : ring_scope.
 
 #[global] Hint Resolve denq_neq0 denq_gt0 denq_ge0 : core.
 
@@ -547,7 +553,7 @@ Lemma denq_int n : denq n%:Q = 1_int. Proof. by rewrite -ratzE. Qed.
 Lemma rat0 : 0%:Q = 0. Proof. by []. Qed.
 Lemma rat1 : 1%:Q = 1. Proof. by []. Qed.
 
-Lemma numqN x : numq (- x) = -_int numq x.
+Lemma numqN (x : rat^r) : numq (- x) = -_int numq x.
 Proof.
 rewrite [- _]oppq_def/= num_fracq.
 case: x => -[a b]; rewrite /numq/= => /andP[b_gt0].
@@ -555,7 +561,7 @@ rewrite /coprime => /eqP cab.
 by rewrite lt_gtF ?gt_eqF // {2}abszN cab divn1 mulz_sign_abs.
 Qed.
 
-Lemma denqN x : denq (- x) = denq x.
+Lemma denqN (x : rat^r) : denq (- x) = denq x.
 Proof.
 rewrite [- _]oppq_def den_fracq.
 case: x => -[a b]; rewrite /denq/= => /andP[b_gt0].
@@ -563,7 +569,7 @@ by rewrite /coprime=> /eqP cab; rewrite gt_eqF // abszN cab divn1 gtz0_abs.
 Qed.
 
 (* Will be subsumed by pnatr_eq0 *)
-Fact intq_eq0 n : (n%:~R == 0 :> rat) = (n == 0)%N.
+Fact intq_eq0 n : (n%:~R == 0 :> rat^r) = (n == 0)%N.
 Proof. by rewrite -ratzE /ratz rat_eqE/= /numq /denq/= eqxx andbT. Qed.
 
 (* fracq should never appear, its canonical form is _%:Q / _%:Q *)
@@ -580,7 +586,7 @@ Qed.
 Lemma divq_num_den x : (numq x)%:Q / (denq x)%:Q = x.
 Proof. by rewrite -{3}[x]valqK [valq _]surjective_pairing /= fracqE. Qed.
 
-Variant divq_spec (n d : int^r) : int^r -> int^r -> rat -> Type :=
+Variant divq_spec (n d : int^r) : int^r -> int^r -> rat^r -> Type :=
 | DivqSpecN of d = 0 : divq_spec n d n 0 0
 | DivqSpecP k x of k != 0_int : divq_spec n d (k * numq x) (k * denq x) x.
 
@@ -591,12 +597,12 @@ set x := (n, d); rewrite -[n]/x.1 -[d]/x.2 -fracqE.
 by case: fracqP => [_|k fx k_neq0] /=; constructor.
 Qed.
 
-Lemma divq_eq_deprecated (nx dx ny dy : rat) :
+Lemma divq_eq_deprecated (nx dx ny dy : rat^r) :
   dx != 0 -> dy != 0 -> (nx / dx == ny / dy) = (nx * dy == ny * dx).
 Proof. exact: eqr_div. Qed.
 
 Variant rat_spec (* (x : rat) *) : rat -> int -> int -> Type :=
-  Rat_spec (n : int) (d : nat)  & coprime `|n| d.+1
+  Rat_spec (n : int) (d : nat) & coprime `|n| d.+1
   : rat_spec (* x  *) (n%:Q / d.+1%:Q) n d.+1.
 
 Lemma ratP x : rat_spec x (numq x) (denq x).
@@ -635,7 +641,7 @@ Proof. by rewrite -{2}[x]divq_num_den divfK // intq_eq0 denq_eq0. Qed.
 Lemma denqP x : {d | denq x = d.+1}.
 Proof. by rewrite /denq; case: x => [[_ [[|d]|]] //= _]; exists d. Qed.
 
-Definition normq '(Rat x _) : rat := `|x.1 : int^r|%:~R / (x.2)%:~R.
+Definition normq '(Rat x _) : rat^r := `|x.1 : int^r|%:~R /_rat (x.2)%:~R.
 Definition le_rat '(Rat x _) '(Rat y _) := x.1 *_int y.2 <= y.1 *_int x.2.
 Definition lt_rat '(Rat x _) '(Rat y _) := x.1 *_int y.2 < y.1 *_int x.2.
 
@@ -648,19 +654,20 @@ Proof. by case: x; case: y. Qed.
 Lemma lt_ratE x y : lt_rat x y = (numq x *_int denq y < numq y *_int denq x).
 Proof. by case: x; case: y. Qed.
 
-Lemma gt_rat0 x : lt_rat 0 x = (0_int < numq x).
+Lemma gt_rat0 x : lt_rat 0_rat x = (0_int < numq x).
 Proof. by rewrite lt_ratE mul0r mulr1. Qed.
 
-Lemma lt_rat0 x : lt_rat x 0 = (numq x < 0_int).
+Lemma lt_rat0 x : lt_rat x 0_rat = (numq x < 0_int).
 Proof. by rewrite lt_ratE mul0r mulr1. Qed.
 
-Lemma ge_rat0 x : le_rat 0 x = (0_int <= numq x).
+Lemma ge_rat0 x : le_rat 0_rat x = (0_int <= numq x).
 Proof. by rewrite le_ratE mul0r mulr1. Qed.
 
-Lemma le_rat0 x : le_rat x 0 = (numq x <= 0_int).
+Lemma le_rat0 x : le_rat x 0_rat = (numq x <= 0_int).
 Proof. by rewrite le_ratE mul0r mulr1. Qed.
 
-Fact le_rat0D x y : le_rat 0 x -> le_rat 0 y -> le_rat 0 (x + y).
+Fact le_rat0D x y :
+  le_rat 0_rat x -> le_rat 0_rat y -> le_rat 0_rat (x +_rat y).
 Proof.
 rewrite !ge_rat0 => hnx hny.
 have hxy: (0_int <= numq x *_int denq y + numq y *_int denq x).
@@ -670,7 +677,8 @@ rewrite val_fracq/=; case: ifP => //=.
 by rewrite ?addq_subdefE !mulr_ge0// !le_gtF ?mulr_ge0 ?denq_ge0//=.
 Qed.
 
-Fact le_rat0M x y : le_rat 0 x -> le_rat 0 y -> le_rat 0 (x * y).
+Fact le_rat0M x y :
+  le_rat 0_rat x -> le_rat 0_rat y -> le_rat 0_rat (x *_rat y).
 Proof.
 rewrite !ge_rat0 => hnx hny.
 have hxy: (0 <= numq x *_int denq y + numq y *_int denq x).
@@ -680,7 +688,7 @@ rewrite val_fracq/=; case: ifP => //=.
 by rewrite ?mulq_subdefE !mulr_ge0// !le_gtF ?mulr_ge0 ?denq_ge0.
 Qed.
 
-Fact le_rat0_anti x : le_rat 0 x -> le_rat x 0 -> x = 0.
+Fact le_rat0_anti x : le_rat 0_rat x -> le_rat x 0_rat -> x = 0_rat.
 Proof.
 by move=> hx hy; apply/eqP; rewrite -numq_eq0 eq_le -ge_rat0 -le_rat0 hx hy.
 Qed.
@@ -693,7 +701,7 @@ case: fracqP => [|k fx k_neq0] /=; first by rewrite mulr0.
 by rewrite !sgrM  mulrACA -expr2 sqr_sg k_neq0 sgr_denq mulr1 mul1r.
 Qed.
 
-Fact subq_ge0 x y : le_rat 0 (y - x) = le_rat x y.
+Fact subq_ge0 x y : le_rat 0_rat (y -_rat x) = le_rat x y.
 Proof.
 symmetry; rewrite ge_rat0 !le_ratE -subr_ge0.
 case: ratP => nx dx cndx; case: ratP => ny dy cndy.
@@ -705,7 +713,8 @@ Qed.
 Fact le_rat_total : total le_rat.
 Proof. by move=> x y; rewrite !le_ratE; apply: le_total. Qed.
 
-Fact numq_sign_mul (b : bool) x : numq ((-1) ^+ b * x) = (-1) ^+ b *_int numq x.
+Fact numq_sign_mul (b : bool) (x : rat^r) :
+  numq ((-1) ^+ b * x) = (-1) ^+ b *_int numq x.
 Proof. by case: b; rewrite ?(mul1r, mulN1r) // numqN. Qed.
 
 Fact numq_div_lt0 (n d : int^r) : n != 0 -> d != 0 ->
@@ -725,10 +734,10 @@ rewrite !intr_sign invr_sign -signr_addb numq_sign_mul -numq_div_lt0 //.
 by apply: (canRL (signrMK _)); rewrite mulz_sign_abs.
 Qed.
 
-Fact norm_ratN x : normq (- x) = normq x.
+Fact norm_ratN x : normq (-_rat x) = normq x.
 Proof. by rewrite !normqE numqN denqN normrN. Qed.
 
-Fact ge_rat0_norm x : le_rat 0 x -> normq x = x.
+Fact ge_rat0_norm x : le_rat 0_rat x -> normq x = x.
 Proof.
 rewrite ge_rat0; case: ratP=> [] // n d cnd n_ge0.
 by rewrite normqE /= normr_num_div ?ger0_norm // divq_num_den.
@@ -738,8 +747,9 @@ Fact lt_rat_def x y : (lt_rat x y) = (y != x) && (le_rat x y).
 Proof. by rewrite lt_ratE le_ratE lt_def rat_eq. Qed.
 
 HB.instance Definition _ :=
-   Num.IntegralDomain_isLeReal.Build rat le_rat0D le_rat0M le_rat0_anti
-     subq_ge0 (@le_rat_total 0) norm_ratN ge_rat0_norm lt_rat_def.
+   Num.IntegralDomain_isLeReal.Build rrat le_rat0D le_rat0M le_rat0_anti
+     subq_ge0 (@le_rat_total 0_rat) norm_ratN ge_rat0_norm lt_rat_def.
+HB.instance Definition _ := Order.Total.copy rat rat^r.
 
 Lemma numq_ge0 x : (0_int <= numq x) = (0 <= x).
 Proof.
@@ -761,16 +771,16 @@ apply/eqP; case: (sgzP x); rewrite sgz_cp0 ?(numq_gt0, numq_lt0) //.
 by move->.
 Qed.
 
-Lemma denq_mulr_sign (b : bool) x : denq ((-1) ^+ b * x) = denq x.
+Lemma denq_mulr_sign (b : bool) (x : rat^r) : denq ((-1) ^+ b * x) = denq x.
 Proof. by case: b; rewrite ?(mul1r, mulN1r) // denqN. Qed.
 
-Lemma denq_norm x : denq `|x| = denq x.
+Lemma denq_norm (x : rat^r) : denq `|x| = denq x.
 Proof. by rewrite normrEsign denq_mulr_sign. Qed.
 
 Module ratArchimedean.
 Section ratArchimedean.
 
-Implicit Types x : rat.
+Implicit Types x : rat^r.
 
 Let trunc x : nat := if 0 <= x then (`|numq x| %/ `|denq x|)%N else 0%N.
 
@@ -798,16 +808,16 @@ Proof. by rewrite /is_nat denqN oppr_ge0 -andb_orl le_total. Qed.
 End ratArchimedean.
 End ratArchimedean.
 
-HB.instance Definition _ := Num.NumDomain_isArchimedean.Build rat
+HB.instance Definition _ := Num.NumDomain_isArchimedean.Build rrat
   ratArchimedean.truncP ratArchimedean.is_natE ratArchimedean.is_intE.
 
-Lemma Qint_def (x : rat) : (x \is a Num.int) = (denq x == 1_int).
+Lemma Qint_def (x : rat^r) : (x \is a Num.int) = (denq x == 1_int).
 Proof. by []. Qed.
 
 Lemma numqK : {in Num.int, cancel (fun x => numq x) intr}.
 Proof. by move=> _ /intrP [x ->]; rewrite numq_int. Qed.
 
-Lemma natq_div m n : n %| m -> (m %/ n)%:R = m%:R / n%:R :> rat.
+Lemma natq_div m n : n %| m -> (m %/ n)%:R = m%:R / n%:R :> rat^r.
 Proof. exact/char0_natf_div/char_num. Qed.
 
 Section InRing.
@@ -835,14 +845,14 @@ Lemma fmorph_rat (aR : fieldType) rR (f : {rmorphism aR -> rR}) a :
   f (ratr _ a) = ratr _ a.
 Proof. by rewrite fmorph_div !rmorph_int. Qed.
 
-Lemma fmorph_eq_rat rR (f : {rmorphism rat -> rR}) : f =1 ratr _.
+Lemma fmorph_eq_rat rR (f : {rmorphism rat^r -> rR}) : f =1 ratr _.
 Proof. by move=> a; rewrite -{1}[a]divq_num_den fmorph_div !rmorph_int. Qed.
 
 End Fmorph.
 
 Section Linear.
 
-Implicit Types (U V : lmodType rat) (A B : lalgType rat).
+Implicit Types (U V : lmodType rat^r) (A B : lalgType rat^r).
 
 Lemma rat_linear U V (f : U -> V) : additive f -> scalable f.
 Proof.
@@ -863,7 +873,7 @@ Variable F : numFieldType.
 
 Fact ratr_is_additive : additive (@ratr F).
 Proof.
-have injZtoQ: @injective rat int intr by apply: intr_inj.
+have injZtoQ: @injective rat^r int intr by apply: intr_inj.
 have nz_den x: (denq x)%:~R != 0 :> F by rewrite intr_eq0 denq_eq0.
 move=> x y.
 apply: (canLR (mulfK (nz_den _))); apply: (mulIf (nz_den x)).
@@ -876,7 +886,7 @@ Qed.
 
 Fact ratr_is_multiplicative : multiplicative (@ratr F).
 Proof.
-have injZtoQ: @injective rat int intr by apply: intr_inj.
+have injZtoQ: @injective rat^r int intr by apply: intr_inj.
 have nz_den x: (denq x)%:~R != 0 :> F by rewrite intr_eq0 denq_eq0.
 split=> [x y|]; last by rewrite /ratr divr1.
 rewrite /ratr mulrC mulrAC; apply: canLR (mulKf (nz_den _)) _; rewrite !mulrA.
@@ -885,9 +895,9 @@ apply: injZtoQ; rewrite !rmorphM [x * y]lock /= !numqE -lock.
 by rewrite -!mulrA mulrA mulrCA -!mulrA (mulrCA y).
 Qed.
 
-HB.instance Definition _ := GRing.isAdditive.Build rat F (@ratr F)
+HB.instance Definition _ := GRing.isAdditive.Build rat^r F (@ratr F)
   ratr_is_additive.
-HB.instance Definition _ := GRing.isMultiplicative.Build rat F (@ratr F)
+HB.instance Definition _ := GRing.isMultiplicative.Build rat^r F (@ratr F)
   ratr_is_multiplicative.
 
 Lemma ler_rat : {mono (@ratr F) : x y / x <= y}.
@@ -912,10 +922,10 @@ Proof. by rewrite (_ : 0 = ratr F 0) ?ltr_rat ?rmorph0. Qed.
 Lemma ltrq0 x : (ratr F x < 0) = (x < 0).
 Proof. by rewrite (_ : 0 = ratr F 0) ?ltr_rat ?rmorph0. Qed.
 
-Lemma ratr_sg x : ratr F (sgr x) = sgr (ratr F x).
+Lemma ratr_sg (x : rat^r) : ratr F (sgr x) = sgr (ratr F x).
 Proof. by rewrite !sgr_def fmorph_eq0 ltrq0 rmorphMn /= rmorph_sign. Qed.
 
-Lemma ratr_norm x : ratr F `|x| = `|ratr F x|.
+Lemma ratr_norm (x : rat^r) : ratr F `|x| = `|ratr F x|.
 Proof.
 by rewrite {2}[x]numEsign rmorphMsign normrMsign [`|ratr F _|]ger0_norm ?ler0q.
 Qed.
@@ -949,10 +959,10 @@ Arguments ratr {R}.
 (* Connecting rationals to the ring and field tactics *)
 
 Ltac rat_to_ring :=
-  rewrite -?[0%Q]/(0 : rat)%R -?[1%Q]/(1 : rat)%R
-          -?[(_ - _)%Q]/(_ - _ : rat)%R -?[(_ / _)%Q]/(_ / _ : rat)%R
-          -?[(_ + _)%Q]/(_ + _ : rat)%R -?[(_ * _)%Q]/(_ * _ : rat)%R
-          -?[(- _)%Q]/(- _ : rat)%R -?[(_ ^-1)%Q]/(_ ^-1 : rat)%R /=.
+  rewrite -?[0%Q]/(0_rat)%R -?[1%Q]/(1_rat)%R
+          -?[addq _ (oppq _)]/(_ -_rat _)%R -?[mulq _ (invq _)]/(_ /_rat _)%R
+          -?[addq _ _]/(_ +_rat _)%R -?[mulq _ _]/(_ *_rat _)%R
+          -?[oppq _]/(-_rat _)%R -?[invq _]/(_ ^-1_rat)%R /=.
 
 Ltac ring_to_rat :=
   rewrite -?[0%R]/0%Q -?[1%R]/1%Q
@@ -990,16 +1000,16 @@ Proof. exact. Qed.
 
 Module mc_2_0.
 
-Local Notation Qint := (Num.int : qualifier 1 rat) (only parsing).
-Local Notation Qnat := (Num.nat : qualifier 1 rat) (only parsing).
+Local Notation Qint := (Num.int : qualifier 1 rat^r) (only parsing).
+Local Notation Qnat := (Num.nat : qualifier 1 rat^r) (only parsing).
 
-Local Lemma QintP (x : rat) : reflect (exists z, x = z%:~R) (x \in Qint).
+Local Lemma QintP (x : rat^r) : reflect (exists z, x = z%:~R) (x \in Qint).
 Proof. exact: intrP. Qed.
 
-Local Lemma Qnat_def (x : rat) : (x \is a Qnat) = (x \is a Qint) && (0 <= x).
+Local Lemma Qnat_def (x : rat^r) : (x \is a Qnat) = (x \is a Qint) && (0 <= x).
 Proof. exact: natrEint. Qed.
 
-Local Lemma QnatP x : reflect (exists n : nat, x = n%:R) (x \in Qnat).
+Local Lemma QnatP (x : rat^r) : reflect (exists n : nat, x = n%:R) (x \in Qnat).
 Proof. exact: natrP. Qed.
 
 End mc_2_0.

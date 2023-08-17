@@ -503,7 +503,7 @@ Import Implementation.
 
 Local Notation algC := type.
 
-Local Notation QtoC := (ratr : rat -> algC).
+Local Notation QtoC := (ratr : rat^r -> algC).
 Local Notation pQtoC := (map_poly QtoC).
 
 Fact algCi_subproof : {i : algC | i ^+ 2 = -1}.
@@ -819,8 +819,10 @@ Proof.
 by apply: (iffP eqP) => [<- | [a ->]]; [exists (CtoQ x) | rewrite ratCK].
 Qed.
 
-Lemma Crat0 : 0 \in Crat. Proof. by apply/CratP; exists 0; rewrite rmorph0. Qed.
-Lemma Crat1 : 1 \in Crat. Proof. by apply/CratP; exists 1; rewrite rmorph1. Qed.
+Lemma Crat0 : 0 \in Crat.
+Proof. by apply/CratP; exists 0_rat; rewrite rmorph0. Qed.
+Lemma Crat1 : 1 \in Crat.
+Proof. by apply/CratP; exists 1_rat; rewrite rmorph1. Qed.
 #[local] Hint Resolve Crat0 Crat1 : core.
 
 Fact Crat_divring_closed : divring_closed Crat.
@@ -841,7 +843,7 @@ Proof. by move/getCratK <-; rewrite fmorph_div !rmorph_int. Qed.
 Lemma Creal_Crat : {subset Crat <= Creal}.
 Proof. by move=> x /conj_Crat/CrealP. Qed.
 
-Lemma Cint_rat a : (QtoC a \in Num.int) = (a \in Num.int).
+Lemma Cint_rat (a : rat^r) : (QtoC a \in Num.int) = (a \in Num.int).
 Proof.
 apply/idP/idP=> [Za | /numqK <-]; last by rewrite rmorph_int.
 apply/intrP; exists (Num.floor (QtoC a)); apply: (can_inj ratCK).

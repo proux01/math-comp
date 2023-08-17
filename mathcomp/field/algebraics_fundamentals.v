@@ -119,7 +119,7 @@ Local Open Scope ring_scope.
 Local Notation "p ^ f" := (map_poly f p) : ring_scope.
 Local Notation "p ^@" := (p ^ in_alg _) (at level 2, format "p ^@"): ring_scope.
 Local Notation "<< E ; u >>" := <<E; u>>%VS.
-Local Notation Qmorphism C := {rmorphism rat -> C}.
+Local Notation Qmorphism C := {rmorphism rat^r -> C}.
 
 Lemma rat_algebraic_archimedean (C : numFieldType) (QtoC : Qmorphism C) :
   integralRange QtoC -> Num.archimedean_axiom C.
@@ -153,7 +153,7 @@ Lemma rat_algebraic_decidable (C : fieldType) (QtoC : Qmorphism C) :
   integralRange QtoC -> decidable_embedding QtoC.
 Proof.
 have QtoCinj: injective QtoC by apply: fmorph_inj.
-pose ZtoQ : int^r -> rat := intr; pose ZtoC : int -> C := intr.
+pose ZtoQ : int^r -> rat^r := intr; pose ZtoC : int -> C := intr.
 have ZtoQinj: injective ZtoQ by apply: intr_inj.
 have defZtoC: ZtoC =1 QtoC \o ZtoQ by move=> m; rewrite /= rmorph_int.
 move=> algC x; have /sig2_eqW[q mon_q qx0] := algC x; pose d := (size q).-1.
@@ -166,7 +166,7 @@ have [n ub_n]: {n | forall y, root q y -> `|y| < n}.
   apply: contraL => /orP[]/andP[] => [/ub_n1/gt_eqF->// | _ /ub_n2/gt_eqF].
   by rewrite hornerZ horner_comp !hornerE opprK mulf_eq0 signr_eq0 => /= ->.
 have [p [a nz_a Dq]] := rat_poly_scale q; pose N := Num.bound `|n * a%:~R|.
-pose xa : seq rat := [seq (m%:R - N%:R) / a%:~R | m <- iota 0 N.*2].
+pose xa : seq rat^r := [seq (m%:R - N%:R) / a%:~R | m <- iota 0 N.*2].
 have [/sig2_eqW[y _ ->] | xa'x] := @mapP _ _ QtoC xa x; first by left; exists y.
 right=> [[y Dx]]; case: xa'x; exists y => //.
 have{x Dx qx0} qy0: root q y by rewrite Dx fmorph_root in qx0.
@@ -193,7 +193,7 @@ have /dvdzP[b Da]: (denq y %| a)%Z.
 pose m := `|(numq y *_int b + N)%R|%N.
 have Dm: m%:R = `|y * a%:~R + N%:R|.
   by rewrite pmulrn abszE intr_norm Da rmorphD !rmorphM /= numqE mulrAC mulrA.
-have ltr_Qnat n1 n2 : (n1%:R < n2%:R :> rat = _) := ltr_nat _ n1 n2.
+have ltr_Qnat n1 n2 : (n1%:R < n2%:R :> rat^r = _) := ltr_nat _ n1 n2.
 have ub_y: `|y * a%:~R| < N%:R.
   apply: le_lt_trans (archi_boundP (normr_ge0 _)); rewrite !normrM.
   by rewrite ler_pM // (le_trans _ (ler_norm n)) ?ltW ?ub_n.
@@ -264,9 +264,9 @@ Theorem Fundamental_Theorem_of_Algebraics :
 Proof.
 have maxn3 n1 n2 n3: {m | [/\ n1 <= m, n2 <= m & n3 <= m]%N}.
   by exists (maxn n1 (maxn n2 n3)); apply/and3P; rewrite -!geq_max.
-have [C [/= QtoC algC]] := countable_algebraic_closure rat.
+have [C [/= QtoC algC]] := countable_algebraic_closure rat^r.
 exists C; have [i Di2] := GRing.imaginary_exists C.
-pose Qfield := fieldExtType rat.
+pose Qfield := fieldExtType rat^r.
 pose Cmorph (L : Qfield) := {rmorphism L -> C}.
 have charQ (L : Qfield): [char L] =i pred0 := ftrans (char_lalg L) (char_num _).
 have sepQ  (L : Qfield) (K E : {subfield L}): separable K E.
@@ -611,7 +611,7 @@ have some_realC: realC.
     pose faM := GRing.isAdditive.Build _ _ _ fA.
     pose fmM := GRing.isMultiplicative.Build _ _ _ fM.
     pose fRM : GRing.RMorphism.type _ _ := HB.pack f faM fmM.
-    by exists 0, rat; exact: fRM.
+    by exists 0, rat^r; exact: fRM.
   have /Fadjoin1_polyP/sig_eqW[q]: x \in <<1; 0>>%VS by rewrite -sQof2 rmorph0.
   by exists q.[0]; rewrite -horner_map rmorph0.
 pose fix xR n : realC :=
@@ -672,7 +672,7 @@ have /all_sig[n_ FTA] z: {n | z \in sQ (z_ n)}.
     have [y /and3P[y_C y_z _]] := PET [:: z_ n; z].
     by have [t /(sQtrans y)t_y] := galQ y; exists t; rewrite !t_y.
   pose QtMixin := FieldExt_isSplittingField.Build _ (Q t) gal_t.
-  pose Qt : splittingFieldType rat := HB.pack (Q t) QtMixin.
+  pose Qt : splittingFieldType rat^r := HB.pack (Q t) QtMixin.
   have /QtoQ[CnQt CnQtE] := t_C.
   pose Rn : {subfield Qt} := (CnQt @: R_ n)%AS; pose i_t : Qt := CnQt (i_ n).
   pose Cn : {subfield Qt} := <<Rn; i_t>>%AS.
