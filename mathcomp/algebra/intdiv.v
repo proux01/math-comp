@@ -67,7 +67,7 @@ Definition lcmz m n := (lcmn `|m| `|n|)%:Z.
 
 Definition egcdz m n : int * int :=
   if m == 0 then (0, (-1) ^+ (n < 0)%R) else
-  let: (u, v) := egcdn `|m| `|n| in (sgz m * u, - (-1) ^+ (n < 0)%R * v%:Z).
+  let: (u, v) := egcdn `|m| `|n| in (sgz m * u, (- (-1) ^+ (n < 0)%R) * v%:Z).
 
 Definition coprimez m n := (gcdz m n == 1).
 

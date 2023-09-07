@@ -298,7 +298,7 @@ have le_p'_dp: size p' <= dp.
 have le_q'_dq: size q' <= dq.
   have [-> | nz_q'] := eqVneq q' 0; first by rewrite size_poly0.
   by rewrite /dq -(size_scale q nz_k) q'r size_mul // addnC -def_r leq_addl.
-exists (row_mx (- c *: poly_rV q') (k *: poly_rV p')).
+exists (row_mx ((- c) *: poly_rV q') (k *: poly_rV p')).
   apply: contraNneq r_nz; rewrite -row_mx0; case/eq_row_mx=> q0 p0.
   have{} p0: p = 0.
     apply/eqP; rewrite -size_poly_eq0 -(size_scale p nz_c) p'r.

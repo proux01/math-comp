@@ -830,7 +830,7 @@ by rewrite mulrSr mulrS opprD addrA addrK.
 Qed.
 
 Lemma sumrN I r P (F : I -> V) :
-  (\sum_(i <- r | P i) - F i = - (\sum_(i <- r | P i) F i)).
+  (\sum_(i <- r | P i) (- F i) = - (\sum_(i <- r | P i) F i)).
 Proof. by rewrite (big_morph _ opprD oppr0). Qed.
 
 Lemma sumrB I r (P : pred I) (F1 F2 : I -> V) :
@@ -1352,9 +1352,9 @@ Lemma mulNr x y : (- x) * y = - (x * y).
 Proof. by apply: (addrI (x * y)); rewrite -mulrDl !subrr mul0r. Qed.
 Lemma mulrNN x y : (- x) * (- y) = x * y.
 Proof. by rewrite mulrN mulNr opprK. Qed.
-Lemma mulN1r x : -1 * x = - x.
+Lemma mulN1r x : (-1) * x = - x.
 Proof. by rewrite mulNr mul1r. Qed.
-Lemma mulrN1 x : x * -1 = - x.
+Lemma mulrN1 x : x * (-1) = - x.
 Proof. by rewrite mulrN mulr1. Qed.
 
 Lemma mulrBl x y z : (y - z) * x = y * x - z * x.
@@ -1429,7 +1429,7 @@ Proof. by move=> reg_x y z; rewrite !mulNr => /oppr_inj/reg_x. Qed.
 Lemma lreg_sign n : lreg ((-1) ^+ n : R). Proof. exact/lregX/lregN/lreg1. Qed.
 
 Lemma prodrN (I : finType) (A : pred I) (F : I -> R) :
-  \prod_(i in A) - F i = (- 1) ^+ #|A| * \prod_(i in A) F i.
+  \prod_(i in A) (- F i) = (- 1) ^+ #|A| * \prod_(i in A) F i.
 Proof.
 rewrite -sum1_card; elim/big_rec3: _ => [|i x n _ _ ->]; first by rewrite mulr1.
 by rewrite exprS !mulrA mulN1r !mulNr commrX //; apply: commrN1.
@@ -1645,7 +1645,7 @@ Proof. by apply: (addIr (1 *: v)); rewrite -scalerDl !add0r. Qed.
 Lemma scaler0 a : a *: 0 = 0 :> V.
 Proof. by rewrite -{1}(scale0r 0) scalerA mulr0 scale0r. Qed.
 
-Lemma scaleNr a v : - a *: v = - (a *: v).
+Lemma scaleNr a v : (- a) *: v = - (a *: v).
 Proof. by apply: (addIr (a *: v)); rewrite -scalerDl !addNr scale0r. Qed.
 
 Lemma scaleN1r v : (- 1) *: v = - v.

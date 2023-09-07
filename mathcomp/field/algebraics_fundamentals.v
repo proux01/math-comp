@@ -740,7 +740,7 @@ have /all_sig[n_ FTA] z: {n | z \in sQ (z_ n)}.
   have [evenG | oddG] := boolP (2.-group G); last first.
     have [P /and3P[sPG evenP oddPG]] := Sylow_exists 2 'Gal(Rz / Rn).
     have [w defQw] := PET_Qz t [aspace of fixedField P].
-    pose pw := minPoly Rn w; pose p := (- pw * (pw \Po - 'X)) ^ ofQ t.
+    pose pw := minPoly Rn w; pose p := ((- pw) * (pw \Po - 'X)) ^ ofQ t.
     have sz_pw: (size pw).-1 = #|'Gal(Rz / Rn) : P|.
       rewrite size_minPoly adjoin_degreeE -dim_fixed_galois //= -defQw.
       congr (\dim_Rn _); apply/esym/eqP; rewrite eqEsubv adjoinSl ?sub1v //=.

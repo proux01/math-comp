@@ -343,7 +343,7 @@ have p_dvd_supp_g i: ~~ p_dv1 i && (i != 0) -> 'chi_i g = 0.
   by rewrite -/m Dm irr1_degree natrK coprime_sym coprimeXl.
 pose alpha := \sum_(i | p_dv1 i && (i != 0)) 'chi_i 1%g / p%:R * 'chi_i g.
 have nz_p: p%:R != 0 :> algC by rewrite pnatr_eq0 -lt0n prime_gt0.
-have Dalpha: alpha = - 1 / p%:R.
+have Dalpha: alpha = (- 1) / p%:R.
   apply/(canRL (mulfK nz_p))/eqP; rewrite -addr_eq0 addrC; apply/eqP/esym.
   transitivity (cfReg G g); first by rewrite cfRegE (negPf nt_g).
   rewrite cfReg_sum sum_cfunE (bigD1 0) //= irr0 !cfunE cfun11 cfun1E Gg.

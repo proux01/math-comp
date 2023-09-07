@@ -4487,7 +4487,7 @@ Lemma invC_rect :
   {in real &, forall x y, (x + 'i * y)^-1  = (x - 'i * y) / (x ^+ 2 + y ^+ 2)}.
 Proof. by move=> x y Rx Ry; rewrite invC_Crect normC2_rect ?conj_Creal. Qed.
 
-Lemma ImV x : 'Im x^-1 = - 'Im x / `|x| ^+ 2.
+Lemma ImV x : 'Im x^-1 = (- 'Im x) / `|x| ^+ 2.
 Proof.
 rewrite [x in LHS]Crect invC_rect// ImMr ?(rpredV, rpredD, rpredX)//.
 by rewrite -mulrN Im_rect ?rpredN// -normC2_rect// -Crect.
@@ -5090,13 +5090,13 @@ Proof. by move: pneq0; rewrite -lead_coef_eq0 lead_coefE degp. Qed.
 Let agt0 : 0 < a. Proof. by rewrite lt_def aneq0. Qed.
 Let a4gt0 : 0 < 4 * a. Proof. by rewrite mulr_gt0 ?ltr0n. Qed.
 
-Lemma deg2_poly_min x : p.[- b / (2 * a)] <= p.[x].
+Lemma deg2_poly_min x : p.[(- b) / (2 * a)] <= p.[x].
 Proof.
 rewrite [p]deg2_poly_canonical ?pnatr_eq0// -/a -/b -/c /delta !hornerE/=.
 by rewrite ler_pM2l// lerD2r addrC mulNr subrr expr0n sqr_ge0.
 Qed.
 
-Lemma deg2_poly_minE : p.[- b / (2 * a)] = - delta / (4 * a).
+Lemma deg2_poly_minE : p.[(- b) / (2 * a)] = (- delta) / (4 * a).
 Proof.
 rewrite [p]deg2_poly_canonical ?pnatr_eq0// -/a -/b -/c -/delta !hornerE/=.
 rewrite [X in X^+2]addrC [in LHS]mulNr subrr expr0n add0r mulNr.
@@ -5105,7 +5105,7 @@ Qed.
 
 Lemma deg2_poly_gt0 : reflect (forall x, 0 < p.[x]) (delta < 0).
 Proof.
-apply/(iffP idP) => [dlt0 x | /(_ (- b / (2 * a)))]; last first.
+apply/(iffP idP) => [dlt0 x | /(_ ((- b) / (2 * a)))]; last first.
   by rewrite deg2_poly_minE ltr_pdivlMr// mul0r oppr_gt0.
 apply: lt_le_trans (deg2_poly_min _).
 by rewrite deg2_poly_minE ltr_pdivlMr// mul0r oppr_gt0.
@@ -5113,7 +5113,7 @@ Qed.
 
 Lemma deg2_poly_ge0 : reflect (forall x, 0 <= p.[x]) (delta <= 0).
 Proof.
-apply/(iffP idP) => [dlt0 x | /(_ (- b / (2 * a)))]; last first.
+apply/(iffP idP) => [dlt0 x | /(_ ((- b) / (2 * a)))]; last first.
   by rewrite deg2_poly_minE ler_pdivlMr// mul0r oppr_ge0.
 apply: le_trans (deg2_poly_min _).
 by rewrite deg2_poly_minE ler_pdivlMr// mul0r oppr_ge0.
@@ -5135,15 +5135,15 @@ Hypothesis ale0 : a <= 0.
 Let delta := b ^+ 2 - 4 * a * c.
 
 Let degpN : size (- p) = 3. Proof. by rewrite size_opp. Qed.
-Let b2a : - (- p)`_1 / (2 * (- p)`_2) = - b / (2 * a).
+Let b2a : (- (- p)`_1) / (2 * (- p)`_2) = (- b) / (2 * a).
 Proof. by rewrite !coefN mulrN divrNN. Qed.
 Let deltaN : (- p)`_1 ^+ 2 - 4 * (- p)`_2 * (- p)`_0 = delta.
 Proof. by rewrite !coefN sqrrN -mulrN opprK mulrN mulNr. Qed.
 
-Lemma deg2_poly_max x : p.[x] <= p.[- b / (2 * a)].
+Lemma deg2_poly_max x : p.[x] <= p.[(- b) / (2 * a)].
 Proof. by rewrite -lerN2 -!hornerN -b2a deg2_poly_min// coefN oppr_ge0. Qed.
 
-Lemma deg2_poly_maxE : p.[- b / (2 * a)] = - delta / (4 * a).
+Lemma deg2_poly_maxE : p.[(- b) / (2 * a)] = (- delta) / (4 * a).
 Proof.
 apply/eqP; rewrite [eqbRHS]mulNr -eqr_oppLR -hornerN -b2a.
 by rewrite deg2_poly_minE// deltaN coefN mulrN divrNN.
@@ -5354,12 +5354,12 @@ Let a1 : a = 1. Proof. by move: (monicP monicp); rewrite lead_coefE degp. Qed.
 Let a2 : 2 * a = 2. Proof. by rewrite a1 mulr1. Qed.
 Let a4 : 4 * a = 4. Proof. by rewrite a1 mulr1. Qed.
 
-Lemma deg2_poly_min x : p.[- b / 2] <= p.[x].
+Lemma deg2_poly_min x : p.[(- b) / 2] <= p.[x].
 Proof. by rewrite -a2 deg2_poly_min -/a ?a1 ?ler01. Qed.
 
 Let deltam : delta = b ^+ 2 - 4 * a * c. Proof. by rewrite a1 mulr1. Qed.
 
-Lemma deg2_poly_minE : p.[- b / 2] = - delta / 4.
+Lemma deg2_poly_minE : p.[(- b) / 2] = (- delta) / 4.
 Proof. by rewrite -a2 -a4 deltam deg2_poly_minE. Qed.
 
 Lemma deg2_poly_gt0 : reflect (forall x, 0 < p.[x]) (delta < 0).

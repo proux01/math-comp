@@ -3149,7 +3149,7 @@ Proof.
 by apply/matrixP=> i k; rewrite !mxE -sumrN; under eq_bigr do rewrite mxE mulrN.
 Qed.
 
-Lemma mulNmx m n p (A : 'M[R]_(m, n)) (B : 'M_(n, p)) : - A *m B = - (A *m B).
+Lemma mulNmx m n p (A : 'M[R]_(m, n)) (B : 'M_(n, p)) : (- A) *m B = - (A *m B).
 Proof.
 by apply/matrixP=> i k; rewrite !mxE -sumrN; under eq_bigr do rewrite mxE mulNr.
 Qed.

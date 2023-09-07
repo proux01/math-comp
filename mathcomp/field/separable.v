@@ -442,7 +442,7 @@ Qed.
 
 Lemma Derivation_separable D :
     Derivation <<K; x>> D -> separable_element K x ->
-  D x = - (map_poly D (minPoly K x)).[x] / (minPoly K x)^`().[x].
+  D x = (- (map_poly D (minPoly K x)).[x]) / (minPoly K x)^`().[x].
 Proof.
 move=> derD sepKx; have:= separable_root_der; rewrite {}sepKx -sub0r => nzKx'x.
 apply: canRL (mulfK nzKx'x) (canRL (addrK _) _); rewrite mulrC addrC.
@@ -454,7 +454,7 @@ Section ExtendDerivation.
 
 Variable D : 'End(L).
 
-Let Dx E := - (map_poly D (minPoly E x)).[x] / ((minPoly E x)^`()).[x].
+Let Dx E := (- (map_poly D (minPoly E x)).[x]) / ((minPoly E x)^`()).[x].
 
 Fact extendDerivation_additive_subproof E (adjEx := Fadjoin_poly E x) :
   let body y (p := adjEx y) := (map_poly D p).[x] + p^`().[x] * Dx E in

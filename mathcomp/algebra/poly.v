@@ -2962,7 +2962,7 @@ Implicit Types (p : {poly F}) (rs : seq F).
 
 Lemma poly2_root p : size p = 2 -> {r | root p r}.
 Proof.
-case: p => [[|p0 [|p1 []]] //= nz_p1]; exists (- p0 / p1).
+case: p => [[|p0 [|p1 []]] //= nz_p1]; exists ((- p0) / p1).
 by rewrite /root addr_eq0 /= mul0r add0r mulrC divfK ?opprK.
 Qed.
 
@@ -3271,7 +3271,7 @@ have [-> | nz_p] := eqVneq p 0.
 rewrite neq_ltn [in _ < 1]polySpred //=.
 apply: (iffP idP) => [p_gt1 | [a]]; last exact: root_size_gt1.
 pose n := (size p).-1; have n_gt0: n > 0 by rewrite -ltnS -polySpred.
-have [a Dan] := closedF (fun i => - p`_i / lead_coef p) n_gt0.
+have [a Dan] := closedF (fun i => (- p`_i) / lead_coef p) n_gt0.
 exists a; apply/rootP; rewrite horner_coef polySpred // big_ord_recr /= -/n.
 rewrite {}Dan mulr_sumr -big_split big1 //= => i _.
 by rewrite -!mulrA mulrCA mulNr mulVKf ?subrr ?lead_coef_eq0.
