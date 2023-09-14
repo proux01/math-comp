@@ -2,9 +2,9 @@
 (* Distributed under the terms of CeCILL-B.                                  *)
 From HB Require Import structures.
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype.
-Require Import BinNat.
-Require BinPos Ndec.
-Require Export Ring.
+(* Require Import BinNat. *)
+(* Require BinPos Ndec. *)
+(* Require Export Ring. *)
 
 (******************************************************************************)
 (* A version of arithmetic on nat (natural numbers) that is better suited to  *)
@@ -135,7 +135,7 @@ Notation "m > n" := (gt m n) : coq_nat_scope.
 (* Rebind scope delimiters, reserving a scope for the "recursive",     *)
 (* i.e., unprotected version of operators.                             *)
 
-Delimit Scope N_scope with num.
+(* Delimit Scope N_scope with num. *)
 (* use #[warning="-hiding-delimiting-key"] attribute once we require Coq 8.18 *)
 Set Warnings "-hiding-delimiting-key".
 Delimit Scope nat_scope with N.
@@ -1979,90 +1979,90 @@ End NatTrec.
 
 Notation natTrecE := NatTrec.trecE.
 
-Lemma eq_binP : Equality.axiom N.eqb.
-Proof.
-move=> p q; apply: (iffP idP) => [|<-]; last by case: p => //; elim.
-by case: q; case: p => //; elim=> [p IHp|p IHp|] [q|q|] //= /IHp [->].
-Qed.
+(* Lemma eq_binP : Equality.axiom N.eqb. *)
+(* Proof. *)
+(* move=> p q; apply: (iffP idP) => [|<-]; last by case: p => //; elim. *)
+(* by case: q; case: p => //; elim=> [p IHp|p IHp|] [q|q|] //= /IHp [->]. *)
+(* Qed. *)
 
-HB.instance Definition _ := hasDecEq.Build N eq_binP.
+(* HB.instance Definition _ := hasDecEq.Build N eq_binP. *)
 
-Arguments N.eqb !n !m.
+(* Arguments N.eqb !n !m. *)
 
 Section NumberInterpretation.
 
 (* use #[warning="-hiding-delimiting-key"] attribute once we require Coq 8.18 *)
 Set Warnings "-hiding-delimiting-key".
-Import BinPos.
+(* Import BinPos. *)
 Set Warnings "hiding-delimiting-key".
 
-Section Trec.
+(* Section Trec. *)
 
-Import NatTrec.
+(* Import NatTrec. *)
 
-Fixpoint nat_of_pos p0 :=
-  match p0 with
-  | xO p => (nat_of_pos p).*2
-  | xI p => (nat_of_pos p).*2.+1
-  | xH   => 1
-  end.
+(* Fixpoint nat_of_pos p0 := *)
+(*   match p0 with *)
+(*   | xO p => (nat_of_pos p).*2 *)
+(*   | xI p => (nat_of_pos p).*2.+1 *)
+(*   | xH   => 1 *)
+(*   end. *)
 
-End Trec.
+(* End Trec. *)
 
-Local Coercion nat_of_pos : positive >-> nat.
+(* Local Coercion nat_of_pos : positive >-> nat. *)
 
-Coercion nat_of_bin b := if b is Npos p then p : nat else 0.
+(* Coercion nat_of_bin b := if b is Npos p then p : nat else 0. *)
 
-Fixpoint pos_of_nat n0 m0 :=
-  match n0, m0 with
-  | n.+1, m.+2 => pos_of_nat n m
-  | n.+1,    1 => xO (pos_of_nat n n)
-  | n.+1,    0 => xI (pos_of_nat n n)
-  |    0,    _ => xH
-  end.
+(* Fixpoint pos_of_nat n0 m0 := *)
+(*   match n0, m0 with *)
+(*   | n.+1, m.+2 => pos_of_nat n m *)
+(*   | n.+1,    1 => xO (pos_of_nat n n) *)
+(*   | n.+1,    0 => xI (pos_of_nat n n) *)
+(*   |    0,    _ => xH *)
+(*   end. *)
 
-Definition bin_of_nat n0 := if n0 is n.+1 then Npos (pos_of_nat n n) else 0%num.
+(* Definition bin_of_nat n0 := if n0 is n.+1 then Npos (pos_of_nat n n) else 0%num. *)
 
-Lemma bin_of_natK : cancel bin_of_nat nat_of_bin.
-Proof.
-have sub2nn n : n.*2 - n = n by rewrite -addnn addKn.
-case=> //= n; rewrite -[n in RHS]sub2nn.
-by elim: n {2 4}n => // m IHm [|[|n]] //=; rewrite IHm // natTrecE sub2nn.
-Qed.
+(* Lemma bin_of_natK : cancel bin_of_nat nat_of_bin. *)
+(* Proof. *)
+(* have sub2nn n : n.*2 - n = n by rewrite -addnn addKn. *)
+(* case=> //= n; rewrite -[n in RHS]sub2nn. *)
+(* by elim: n {2 4}n => // m IHm [|[|n]] //=; rewrite IHm // natTrecE sub2nn. *)
+(* Qed. *)
 
-Lemma nat_of_binK : cancel nat_of_bin bin_of_nat.
-Proof.
-case=> //=; elim=> //= p; case: (nat_of_pos p) => //= n [<-].
-  by rewrite natTrecE !addnS {2}addnn; elim: {1 3}n.
-by rewrite natTrecE addnS /= addnS {2}addnn; elim: {1 3}n.
-Qed.
+(* Lemma nat_of_binK : cancel nat_of_bin bin_of_nat. *)
+(* Proof. *)
+(* case=> //=; elim=> //= p; case: (nat_of_pos p) => //= n [<-]. *)
+(*   by rewrite natTrecE !addnS {2}addnn; elim: {1 3}n. *)
+(* by rewrite natTrecE addnS /= addnS {2}addnn; elim: {1 3}n. *)
+(* Qed. *)
 
-Lemma nat_of_succ_pos p : Pos.succ p = p.+1 :> nat.
-Proof. by elim: p => //= p ->; rewrite !natTrecE. Qed.
+(* Lemma nat_of_succ_pos p : Pos.succ p = p.+1 :> nat. *)
+(* Proof. by elim: p => //= p ->; rewrite !natTrecE. Qed. *)
 
-Lemma nat_of_add_pos p q : (p + q)%positive = p + q :> nat.
-Proof.
-apply: @fst _ (Pplus_carry p q = (p + q).+1 :> nat) _.
-elim: p q => [p IHp|p IHp|] [q|q|] //=; rewrite !natTrecE //;
-  by rewrite ?IHp ?nat_of_succ_pos ?(doubleS, doubleD, addn1, addnS).
-Qed.
+(* Lemma nat_of_add_pos p q : (p + q)%positive = p + q :> nat. *)
+(* Proof. *)
+(* apply: @fst _ (Pplus_carry p q = (p + q).+1 :> nat) _. *)
+(* elim: p q => [p IHp|p IHp|] [q|q|] //=; rewrite !natTrecE //; *)
+(*   by rewrite ?IHp ?nat_of_succ_pos ?(doubleS, doubleD, addn1, addnS). *)
+(* Qed. *)
 
-Lemma nat_of_mul_pos p q : (p * q)%positive = p * q :> nat.
-Proof.
-elim: p => [p IHp|p IHp|] /=; rewrite ?mul1n //;
-  by rewrite ?nat_of_add_pos /= !natTrecE IHp doubleMl.
-Qed.
+(* Lemma nat_of_mul_pos p q : (p * q)%positive = p * q :> nat. *)
+(* Proof. *)
+(* elim: p => [p IHp|p IHp|] /=; rewrite ?mul1n //; *)
+(*   by rewrite ?nat_of_add_pos /= !natTrecE IHp doubleMl. *)
+(* Qed. *)
 
-Lemma nat_of_add_bin b1 b2 : (b1 + b2)%num = b1 + b2 :> nat.
-Proof. by case: b1 b2 => [|p] [|q]; rewrite ?addn0 //= nat_of_add_pos. Qed.
+(* Lemma nat_of_add_bin b1 b2 : (b1 + b2)%num = b1 + b2 :> nat. *)
+(* Proof. by case: b1 b2 => [|p] [|q]; rewrite ?addn0 //= nat_of_add_pos. Qed. *)
 
-Lemma nat_of_mul_bin b1 b2 : (b1 * b2)%num = b1 * b2 :> nat.
-Proof. by case: b1 b2 => [|p] [|q]; rewrite ?muln0 //= nat_of_mul_pos. Qed.
+(* Lemma nat_of_mul_bin b1 b2 : (b1 * b2)%num = b1 * b2 :> nat. *)
+(* Proof. by case: b1 b2 => [|p] [|q]; rewrite ?muln0 //= nat_of_mul_pos. Qed. *)
 
-Lemma nat_of_exp_bin n (b : N) : n ^ b = pow_N 1 muln n b.
-Proof.
-by case: b; last (elim=> //= p <-; rewrite natTrecE mulnn -expnM muln2 ?expnS).
-Qed.
+(* Lemma nat_of_exp_bin n (b : N) : n ^ b = pow_N 1 muln n b. *)
+(* Proof. *)
+(* by case: b; last (elim=> //= p <-; rewrite natTrecE mulnn -expnM muln2 ?expnS). *)
+(* Qed. *)
 
 End NumberInterpretation.
 
@@ -2073,30 +2073,30 @@ End NumberInterpretation.
 (*        to display the result of an expression that   *)
 (*        returns a larger integer.                     *)
 
-Record number : Type := Num {bin_of_number :> N}.
+(* Record number : Type := Num {bin_of_number :> N}. *)
 
-Definition extend_number (nn : number) m := Num (nn * 1000 + bin_of_nat m).
+(* Definition extend_number (nn : number) m := Num (nn * 1000 + bin_of_nat m). *)
 
-Coercion extend_number : number >-> Funclass.
+(* Coercion extend_number : number >-> Funclass. *)
 
-Definition number_subType := Eval hnf in [isNew for bin_of_number].
-HB.instance Definition _ := number_subType.
-HB.instance Definition _ := [Equality of number by <:].
+(* Definition number_subType := Eval hnf in [isNew for bin_of_number]. *)
+(* HB.instance Definition _ := number_subType. *)
+(* HB.instance Definition _ := [Equality of number by <:]. *)
 
-Notation "[ 'Num' 'of' e ]" := (Num (bin_of_nat e))
-  (at level 0, format "[ 'Num'  'of'  e ]") : nat_scope.
+(* Notation "[ 'Num' 'of' e ]" := (Num (bin_of_nat e)) *)
+(*   (at level 0, format "[ 'Num'  'of'  e ]") : nat_scope. *)
 
 (* Interface to ring/ring_simplify tactics *)
 
-Lemma nat_semi_ring : semi_ring_theory 0 1 addn muln (@eq _).
-Proof. exact: mk_srt add0n addnC addnA mul1n mul0n mulnC mulnA mulnDl. Qed.
+(* Lemma nat_semi_ring : semi_ring_theory 0 1 addn muln (@eq _). *)
+(* Proof. exact: mk_srt add0n addnC addnA mul1n mul0n mulnC mulnA mulnDl. Qed. *)
 
-Lemma nat_semi_morph :
-  semi_morph 0 1 addn muln (@eq _) 0%num 1%num Nplus Nmult pred1 nat_of_bin.
-Proof. by move: nat_of_add_bin nat_of_mul_bin; split=> //= m n /eqP ->. Qed.
+(* Lemma nat_semi_morph : *)
+(*   semi_morph 0 1 addn muln (@eq _) 0%num 1%num Nplus Nmult pred1 nat_of_bin. *)
+(* Proof. by move: nat_of_add_bin nat_of_mul_bin; split=> //= m n /eqP ->. Qed. *)
 
-Lemma nat_power_theory : power_theory 1 muln (@eq _) nat_of_bin expn.
-Proof. by split; apply: nat_of_exp_bin. Qed.
+(* Lemma nat_power_theory : power_theory 1 muln (@eq _) nat_of_bin expn. *)
+(* Proof. by split; apply: nat_of_exp_bin. Qed. *)
 
 (* Interface to the ring tactic machinery. *)
 
@@ -2104,11 +2104,11 @@ Fixpoint pop_succn e := if e is e'.+1 then fun n => pop_succn e' n.+1 else id.
 
 Ltac pop_succn e := eval lazy beta iota delta [pop_succn] in (pop_succn e 1).
 
-Ltac nat_litteral e :=
-  match pop_succn e with
-  | ?n.+1 => constr: (bin_of_nat n)
-  |     _ => NotConstant
-  end.
+(* Ltac nat_litteral e := *)
+(*   match pop_succn e with *)
+(*   | ?n.+1 => constr: (bin_of_nat n) *)
+(*   |     _ => NotConstant *)
+(*   end. *)
 
 Ltac succn_to_add :=
   match goal with
@@ -2121,9 +2121,9 @@ Ltac succn_to_add :=
   | _ => idtac
   end.
 
-Add Ring nat_ring_ssr : nat_semi_ring (morphism nat_semi_morph,
-   constants [nat_litteral], preprocess [succn_to_add],
-   power_tac nat_power_theory [nat_litteral]).
+(* Add Ring nat_ring_ssr : nat_semi_ring (morphism nat_semi_morph, *)
+(*    constants [nat_litteral], preprocess [succn_to_add], *)
+(*    power_tac nat_power_theory [nat_litteral]). *)
 
 (* A congruence tactic, similar to the boolean one, along with an .+1/+  *)
 (* normalization tactic.                                                 *)

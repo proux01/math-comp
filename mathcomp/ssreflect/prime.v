@@ -121,7 +121,7 @@ Notation "p ^? e :: pd" := (cons_pfactor p e pd)
 End PrimeDecompAux.
 
 (* For pretty-printing. *)
-Definition NumFactor (f : nat * nat) := ([Num of f.1], f.2).
+(* Definition NumFactor (f : nat * nat) := ([Num of f.1], f.2). *)
 
 Definition pfactor p e := p ^ e.
 

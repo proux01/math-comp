@@ -4378,7 +4378,10 @@ Qed.
 Lemma eq_mxblockP A_ B_ :
   (forall i j, A_ i j = B_ i j) <->
   (\mxblock_(i, j) A_ i j = \mxblock_(i, j) B_ i j).
-Proof. by rewrite -mxblockP; split => + i j => /(_ i j); rewrite !mxblockK. Qed.
+Proof.
+split; first by move=> e; apply/mxblockP => i j; rewrite !mxblockK.
+by move=> + i j => /mxblockP/(_ i j); rewrite !mxblockK.
+Qed.
 
 Lemma eq_mxblock A_ B_ :
   (forall i j, A_ i j = B_ i j) ->
@@ -4387,7 +4390,10 @@ Proof. by move=> /eq_mxblockP. Qed.
 
 Lemma eq_mxrowP m (A_ B_ : forall j, 'M[T]_(m, q_ j)) :
   (forall j, A_ j = B_ j) <-> (\mxrow_j A_ j = \mxrow_j B_ j).
-Proof. by rewrite -mxrowP; split => + j => /(_ j); rewrite !mxrowK. Qed.
+Proof.
+split; first by move=> e; apply/mxrowP => j; rewrite !mxrowK.
+by move=> + j => /mxrowP/(_ j); rewrite !mxrowK.
+Qed.
 
 Lemma eq_mxrow m (A_ B_ : forall j, 'M[T]_(m, q_ j)) :
   (forall j, A_ j = B_ j) -> (\mxrow_j A_ j = \mxrow_j B_ j).
@@ -4395,7 +4401,10 @@ Proof. by move=> /eq_mxrowP. Qed.
 
 Lemma eq_mxcolP n (A_ B_ : forall i, 'M[T]_(p_ i, n)) :
   (forall i, A_ i = B_ i) <-> (\mxcol_i A_ i = \mxcol_i B_ i).
-Proof. by rewrite -mxcolP; split => + i => /(_ i); rewrite !mxcolK. Qed.
+Proof.
+split; first by move=> e; apply/mxcolP => i; rewrite !mxcolK.
+by move=> + i => /mxcolP/(_ i); rewrite !mxcolK.
+Qed.
 
 Lemma eq_mxcol n (A_ B_ : forall i, 'M[T]_(p_ i, n)) :
   (forall i, A_ i = B_ i) -> (\mxcol_i A_ i = \mxcol_i B_ i).
@@ -4833,7 +4842,7 @@ Lemma mul_mxblock {R : ringType} {p q r : nat}
   \mxblock_(i, k) \sum_j (A_ i j *m B_ j k).
 Proof.
 rewrite mxblockEh mul_mxrow_mxblock mxblockEh; apply: eq_mxrow => i.
-by under [LHS]eq_bigr do rewrite mxcol_mul; rewrite -mxcol_sum.
+by under [LHS]eq_bigr => j _ do rewrite mxcol_mul; rewrite -mxcol_sum.
 Qed.
 
 Section SquareBlockMatrixZmod.
@@ -4913,9 +4922,8 @@ Proof. by rewrite mxblockK conform_mx_id eqxx. Qed.
 Lemma eq_mxdiagP (B_ B'_ : forall i, 'M[V]_(p_ i)) :
   (forall i, B_ i = B'_ i) <-> (\mxdiag_i B_ i = \mxdiag_i B'_ i).
 Proof.
-rewrite /mxdiag -eq_mxblockP; split => [+ i j|+ i] => [/(_ i)|/(_ i i)].
-  by case: eqVneq => // -> ->.
-by rewrite eqxx !conform_mx_id.
+rewrite /mxdiag; split; first by move=> e; apply/eq_mxblockP => i j; rewrite e.
+by move=> + i => /eq_mxblockP/(_ i i); rewrite eqxx !conform_mx_id.
 Qed.
 
 Lemma eq_mxdiag (B_ B'_ : forall i, 'M[V]_(p_ i)) :

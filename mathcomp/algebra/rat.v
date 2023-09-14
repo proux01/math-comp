@@ -953,6 +953,7 @@ Ltac ring_to_rat :=
           -?[(_ + _)%R]/(_ + _)%Q -?[(_ * _)%R]/(_ * _)%Q
           -?[(- _)%R]/(- _)%Q -?[(_ ^-1)%R]/(_ ^-1)%Q /=.
 
+(*
 Lemma rat_ring_theory : (ring_theory 0%Q 1%Q addq mulq subq oppq eq).
 Proof.
 split => * //; rat_to_ring;
@@ -969,6 +970,7 @@ by move=> p /eqP p_neq0; rat_to_ring; rewrite mulVf.
 Qed.
 
 Add Field rat_field : rat_field_theory.
+*)
 
 (* Pretty printing or normal element of rat. *)
 Notation "[ 'rat' x // y ]" := (@Rat (x, y) _) (only printing) : ring_scope.
