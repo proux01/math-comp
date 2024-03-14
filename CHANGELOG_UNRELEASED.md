@@ -52,6 +52,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - in `ssrbool.v`
   + lemmas `classic_sigW`, `classic_ex`
 
+- in `order.v`
+  + structures `meetSemilatticeType`, `bMeetSemilatticeType`,
+    `tMeetSemilatticeType`, `tbMeetSemilatticeType`,
+    `joinSemilatticeType`, `bJoinSemilatticeType`,
+    `tJoinSemilatticeType`, `tbJoinSemilatticeType`,
+    `tDistrLatticeType`, `bOrderType`, `tOrderType`, `tbOrderType`,
+    `cDistrLatticeType` (relatively complemented distributive lattices),
+    `ctDistrLatticeType` (dually sectionally complemented distributive lattices),
+    `finBPOrderType`, `finTPOrderType`, `finTBPOrderType`,
+    `finMeetSemilatticeType`, `finBMeetSemilatticeType`,
+    `finJoinSemilatticeType`, and `finTJoinSemilatticeType`.
+  + `rcompl x y z` is the relative complement of `z` in `[x, y]` defined for any
+    `cDistrLatticeType` instance.
+  + `codiff x y` is the dual sectional complement of `y` in `[x, \top]` defined
+    for any `ctDistrLatticeType` instance.
+
 ### Changed
 
 - in `bigop.v`
@@ -63,10 +79,46 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - in `path.v`
   + generalized `count_merge` from `eqType` to `Type`
 
+- in `order.v`
+  + The dual instances are now definitionally involutive, i.e., canonical
+    instances of an order structure on `T^d^d` and `T` are convertible (the
+    latter instance may require an eta-expansion on the type record for
+    technical reasons). Similarly, canonical instances of an order structure on
+    `(T1 *p T2)^d` and `T1^d *p T2^d` are convertible.
+  + In order to achieve the above definitional properties on displays, the type
+    of display is changed from `unit` to `Order.disp_t`, which is a primitive
+    record type consisting of two fields of type `unit`.
+  + The default displays for product and lexicographic orders are now defined
+    separately for cartesian products and sequences. They take displays of the
+    parameter types as parameters.
+    * `prod_display d1 d2` is the default display for the product order of
+      cartesian products of the form `T1 * T2`, where `T1` and `T2` have
+      canonical orders of displays `d1` and `d2`, respectively.
+    * `seqprod_display d` is the default display for the product order of
+      sequences and tuples.
+    * `lexi_display d1 d2` is the default display for the lexicographic order of
+      cartesian products.
+    * `seqlexi_display d` is the default display for the lexicographic order of
+      sequences and tuples.
+  + The operator notations for `seqprod_display` and `seqlexi_display` now use
+    `^sp` and `^sl` in place of `^p` and `^l`, respectively.
+  + `finLatticeType`, `finDistrLatticeType`, `finOrderType`, and
+    `finCDistrLatticeType` now do not require the existence of top and bottom
+    elements, i.e., their instances are not necessarily inhabited.
+    Their counterparts with top and bottom are now `finTBLatticeType`,
+    `finTBDistrLatticeType`, `finTBOrderType`, and `finCTBDistrLatticeType`,
+    respectively.
+
 ### Renamed
 
 - in `binomial.v`
   + lemma `triangular_sum` renamed as `bin2_sum`
+
+- in `order.v` (cf. Changed section)
+  + `finLatticeType` -> `finTBLatticeType`
+  + `finDistrLatticeType` -> `finTBDistrLatticeType`
+  + `finOrderType` -> `finTBOrderType`
+  + `finCDistrLatticeType` -> `finCTBDistrLatticeType`
 
 ### Removed
 
@@ -122,6 +174,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - in `binomial.v`
   + lemma `triangular_sum`, use `bin2_sum` instead
   + lemma `Pascal`, use `expnDn` instead
+
+- in `order.v`
+  + factory `hasRelativeComplement`,
+    use `BDistrLattice_hasSectionalComplement` instead
+  + factory `hasComplement`,
+    use `CBDistrLattice_hasComplement` instead
 
 ### Infrastructure
 
