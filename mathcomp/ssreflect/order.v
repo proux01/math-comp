@@ -1062,7 +1062,9 @@ Reserved Notation "'{' 'tblmorphism' U '->' V '}'"
 
 Module Order.
 
-HB.mixin Record isPOrder (d : unit) T of Equality T := {
+Definition disp_t := unit.
+
+HB.mixin Record isPOrder (d : disp_t) T of Equality T := {
   le       : rel T;
   lt       : rel T;
   lt_def   : forall x y, lt x y = (y != x) && (le x y);
@@ -1072,7 +1074,7 @@ HB.mixin Record isPOrder (d : unit) T of Equality T := {
 }.
 
 #[short(type="porderType")]
-HB.structure Definition POrder (d : unit) :=
+HB.structure Definition POrder (d : disp_t) :=
   { T of Choice T & isPOrder d T }.
 
 #[key="T", primitive]
@@ -1116,7 +1118,7 @@ HB.export POrderExports.
 
 Section POrderDef.
 
-Variable (disp : unit) (T : porderType disp).
+Variable (disp : disp_t) (T : porderType disp).
 
 Local Notation "x <= y" := (le x y) : order_scope.
 Local Notation "x < y" := (lt x y) : order_scope.
@@ -1357,7 +1359,7 @@ End LatticeExports.
 HB.export LatticeExports.
 
 Section LatticeDef.
-Context {disp : unit} {T : latticeType disp}.
+Context {disp : disp_t} {T : latticeType disp}.
 
 Variant lel_xor_gt (x y : T) :
   T -> T -> T -> T -> T -> T -> T -> T -> bool -> bool -> Set :=
@@ -1614,7 +1616,7 @@ HB.export FinTotalExports.
 (********)
 
 Definition dual T : Type := T.
-Definition dual_display : unit -> unit. Proof. exact. Qed.
+Definition dual_display : disp_t -> disp_t. Proof. exact. Qed.
 
 Notation dual_le := (@le (dual_display _) _).
 Notation dual_lt := (@lt (dual_display _) _).
@@ -1759,7 +1761,7 @@ HB.instance Definition _ (T : finType) := Finite.on T^d.
 
 Section DualPOrder.
 
-Context {disp : unit}.
+Context {disp : disp_t}.
 Variable T : porderType disp.
 
 Lemma dual_lt_def (x y : T) : gt x y = (y != x) && ge x y.
@@ -1782,7 +1784,7 @@ End DualPOrder.
 HB.instance Definition _ d (T : finPOrderType d) := FinPOrder.on T^d.
 
 Section DualLattice.
-Context {disp : unit}.
+Context {disp : disp_t}.
 Variable L : latticeType disp.
 Implicit Types (x y : L).
 
@@ -1826,7 +1828,7 @@ Lemma joinEdual x y : ((x : L^d) `|^d` y) = (x `&` y). Proof. by []. Qed.
 End DualLattice.
 
 Section DualTBLattice.
-Context {disp : unit} {L : tbLatticeType disp}.
+Context {disp : disp_t} {L : tbLatticeType disp}.
 
 HB.instance Definition _ := hasBottom.Build _ L^d lex1.
 (* FIXME: BUG? *)
@@ -1841,7 +1843,7 @@ End DualTBLattice.
 HB.instance Definition _ d (T : finLatticeType d) := FinLattice.on T^d.
 
 Section DistrLatticeTheory.
-Context {disp : unit}.
+Context {disp : disp_t}.
 Variable L : distrLatticeType disp.
 Implicit Types (x y : L).
 
@@ -1857,7 +1859,7 @@ HB.instance Definition _ := Lattice_Meet_isDistrLattice.Build _ L^d
 End DistrLatticeTheory.
 
 Section DualTBDistrLattice.
-Context {disp : unit} {L : tbDistrLatticeType disp}.
+Context {disp : disp_t} {L : tbDistrLatticeType disp}.
 
 HB.instance Definition _ := BDistrLattice.on L^d.
 HB.instance Definition _ := TBDistrLattice.on L^d.
@@ -1868,7 +1870,7 @@ HB.instance Definition _ d (T : finDistrLatticeType d) :=
   FinDistrLattice.on T^d.
 
 Section DualOrder.
-Context {disp : unit}.
+Context {disp : disp_t}.
 Variable O : orderType disp.
 
 Lemma dual_total : total (<=%O : rel O^d).
@@ -1891,9 +1893,7 @@ HB.export DualOrder.
 
 Module Import POrderTheory.
 Section POrderTheory.
-
-Context {disp : unit} {T : porderType disp}.
-
+Context {disp : disp_t} {T : porderType disp}.
 Implicit Types (x y : T) (s : seq T).
 
 Lemma geE x y : ge x y = (y <= x). Proof. by []. Qed.
@@ -2682,7 +2682,7 @@ End POrderTheory.
 #[global] Hint Resolve comparable_maxr comparable_maxl : core.
 
 Section ContraTheory.
-Context {disp1 disp2 : unit} {T1 : porderType disp1} {T2 : porderType disp2}.
+Context {disp1 disp2 : disp_t} {T1 : porderType disp1} {T2 : porderType disp2}.
 Implicit Types (x y : T1) (z t : T2) (b : bool) (m n : nat) (P : Prop).
 
 Lemma comparable_contraTle b x y : x >=< y -> (y < x -> ~~ b) -> (b -> x <= y).
@@ -2786,8 +2786,7 @@ Proof. by do 2![case: comparableP => //= ?]. Qed.
 End ContraTheory.
 
 Section POrderMonotonyTheory.
-
-Context {disp disp' : unit}.
+Context {disp disp' : disp_t}.
 Context {T : porderType disp} {T' : porderType disp'}.
 Implicit Types (m n p : nat) (x y z : T) (u v w : T').
 Variables (D D' : {pred T}) (f : T -> T').
@@ -2879,7 +2878,7 @@ Arguments comparable_max_idPl {disp T x y _}.
 
 Module Import LatticeTheoryMeet.
 Section LatticeTheoryMeet.
-Context {disp : unit} {L : latticeType disp}.
+Context {disp : disp_t} {L : latticeType disp}.
 Implicit Types (x y : L).
 
 (* lattice theory *)
@@ -2953,7 +2952,7 @@ End LatticeTheoryMeet.
 
 Module Import LatticeTheoryJoin.
 Section LatticeTheoryJoin.
-Context {disp : unit} {L : latticeType disp}.
+Context {disp : disp_t} {L : latticeType disp}.
 Implicit Types (x y : L).
 
 (* lattice theory *)
@@ -3047,7 +3046,7 @@ Arguments join_idPl {disp L x y}.
 
 Module Import DistrLatticeTheory.
 Section DistrLatticeTheory.
-Context {disp : unit}.
+Context {disp : disp_t}.
 Variable L : distrLatticeType disp.
 Implicit Types (x y : L).
 
@@ -3068,7 +3067,7 @@ End DistrLatticeTheory.
 
 Module Import TotalTheory.
 Section TotalTheory.
-Context {disp : unit} {T : orderType disp}.
+Context {disp : disp_t} {T : orderType disp}.
 Implicit Types (x y z t : T) (s : seq T).
 
 Definition le_total : total (<=%O : rel T) := le_total.
@@ -3725,7 +3724,7 @@ Arguments eq_bigmax {disp T I x} j.
 (* FIXME: lemmas in the following section should hold for any porderType *)
 Module Import DualTotalTheory.
 Section DualTotalTheory.
-Context {disp : unit} {T : orderType disp}.
+Context {disp : disp_t} {T : orderType disp}.
 Implicit Type s : seq T.
 
 Lemma sorted_filter_gt x s :
@@ -3773,7 +3772,7 @@ End DualTotalTheory.
 (* contra lemmas *)
 
 Section ContraTheory.
-Context {disp1 disp2 : unit} {T1 : porderType disp1} {T2 : orderType disp2}.
+Context {disp1 disp2 : disp_t} {T1 : porderType disp1} {T2 : orderType disp2}.
 Implicit Types (x y : T1) (z t : T2) (b : bool) (m n : nat) (P : Prop).
 
 Lemma contraTle b z t : (t < z -> ~~ b) -> (b -> z <= t).
@@ -3834,7 +3833,7 @@ End ContraTheory.
 
 Section TotalMonotonyTheory.
 
-Context {disp : unit} {disp' : unit}.
+Context {disp : disp_t} {disp' : disp_t}.
 Context {T : orderType disp} {T' : porderType disp'}.
 Variables (D : {pred T}) (f : T -> T').
 Implicit Types (x y z : T) (u v w : T').
@@ -3899,7 +3898,7 @@ End TotalTheory.
 
 Module Import BLatticeTheory.
 Section BLatticeTheory.
-Context {disp : unit} {L : bLatticeType disp}.
+Context {disp : disp_t} {L : bLatticeType disp}.
 Implicit Types (I : finType) (T : eqType) (x y z : L).
 Local Notation "\bot" := bottom.
 
@@ -4001,7 +4000,7 @@ End BLatticeTheory.
 
 Module Import TLatticeTheory.
 Section TLatticeTheory.
-Context {disp : unit} {L : tLatticeType disp}.
+Context {disp : disp_t} {L : tLatticeType disp}.
 Implicit Types (I : finType) (T : eqType) (x y : L).
 
 Local Notation "\top" := top.
@@ -4093,7 +4092,7 @@ End TLatticeTheory.
 
 Module Import TBLatticeTheory.
 Section TBLatticeTheory.
-Context {disp : unit} {L : tbLatticeType disp}.
+Context {disp : disp_t} {L : tbLatticeType disp}.
 
 HB.instance Definition _ := Monoid.isComLaw.Build L \top meet
   (@meetA _ L) (@meetC _ L) meet1x.
@@ -4108,7 +4107,7 @@ End TBLatticeTheory.
 
 Module Import BDistrLatticeTheory.
 Section BDistrLatticeTheory.
-Context {disp : unit} {L : bDistrLatticeType disp}.
+Context {disp : disp_t} {L : bDistrLatticeType disp}.
 Implicit Types (I : finType) (T : eqType) (x y z : L).
 Local Notation "\bot" := bottom.
 (* Distributive lattice theory with \bot & \top *)
@@ -4153,7 +4152,7 @@ End BDistrLatticeTheory.
 
 Module Import TBDistrLatticeTheory.
 Section TBDistrLatticeTheory.
-Context {disp : unit} {L : tbDistrLatticeType disp}.
+Context {disp : disp_t} {L : tbDistrLatticeType disp}.
 Implicit Types (I : finType) (T : eqType) (x y : L).
 
 Local Notation "\top" := top.
@@ -4188,7 +4187,7 @@ End TBDistrLatticeTheory.
 
 Module Import CBDistrLatticeTheory.
 Section CBDistrLatticeTheory.
-Context {disp : unit} {L : cbDistrLatticeType disp}.
+Context {disp : disp_t} {L : cbDistrLatticeType disp}.
 Implicit Types (x y z : L).
 Local Notation "\bot" := bottom.
 
@@ -4389,7 +4388,7 @@ End CBDistrLatticeTheory.
 
 Module Import CTBDistrLatticeTheory.
 Section CTBDistrLatticeTheory.
-Context {disp : unit} {L : ctbDistrLatticeType disp}.
+Context {disp : disp_t} {L : ctbDistrLatticeType disp}.
 Implicit Types (x y z : L).
 Local Notation "\bot" := bottom.
 Local Notation "\top" := top.
@@ -4476,20 +4475,20 @@ End CTBDistrLatticeTheory.
 
 (* porderType *)
 
-HB.factory Record Le_isPOrder (d : unit) T of Equality T := {
+HB.factory Record Le_isPOrder (d : disp_t) T of Equality T := {
   le       : rel T;
   le_refl  : reflexive     le;
   le_anti  : antisymmetric le;
   le_trans : transitive    le;
 }.
 
-HB.builders Context (d : unit) T of Le_isPOrder d T.
+HB.builders Context d T of Le_isPOrder d T.
 (* TODO: print nice error message when keyed type is not provided *)
 HB.instance Definition _ := @isPOrder.Build d T
   le _ (fun _ _ => erefl) le_refl le_anti le_trans.
 HB.end.
 
-HB.factory Record LtLe_isPOrder (d : unit) T of Equality T := {
+HB.factory Record LtLe_isPOrder (d : disp_t) T of Equality T := {
   le : rel T;
   lt : rel T;
   le_def   : forall x y, le x y = (x == y) || lt x y;
@@ -4497,7 +4496,7 @@ HB.factory Record LtLe_isPOrder (d : unit) T of Equality T := {
   lt_trans : transitive lt;
 }.
 
-HB.builders Context (d : unit) T of LtLe_isPOrder d T.
+HB.builders Context d T of LtLe_isPOrder d T.
 
 Let le_refl : reflexive le. Proof. by move=> x; rewrite le_def eqxx. Qed.
 
@@ -4522,13 +4521,13 @@ HB.instance Definition _ := @isPOrder.Build d T
 
 HB.end.
 
-HB.factory Record Lt_isPOrder (d : unit) T of Equality T := {
+HB.factory Record Lt_isPOrder (d : disp_t) T of Equality T := {
   lt       : rel T;
   lt_irr   : irreflexive lt;
   lt_trans : transitive  lt;
 }.
 
-HB.builders Context (d : unit) (T : Type) of Lt_isPOrder d T.
+HB.builders Context d T of Lt_isPOrder d T.
 HB.instance Definition _ := @LtLe_isPOrder.Build d T
   _ lt (fun _ _ => erefl) lt_irr lt_trans.
 HB.end.
@@ -4589,8 +4588,7 @@ HB.end.
 HB.factory Record POrder_isTotal d T of POrder d T := {
   le_total : total (<=%O : rel T) }.
 
-HB.builders
-  Context d T of POrder_isTotal d T.
+HB.builders Context d T of POrder_isTotal d T.
 
 Implicit Types (x y z : T).
 
@@ -4651,7 +4649,7 @@ HB.instance Definition _ :=
   Lattice_isTotal.Build d T comparableT.
 HB.end.
 
-HB.factory Record isMeetJoinDistrLattice (d : unit) T of Choice T := {
+HB.factory Record isMeetJoinDistrLattice (d : disp_t) T of Choice T := {
   le : rel T;
   lt : rel T;
   meet : T -> T -> T;
@@ -4668,8 +4666,7 @@ HB.factory Record isMeetJoinDistrLattice (d : unit) T of Choice T := {
   meetxx : idempotent meet;
 }.
 
-HB.builders
-  Context (d : unit) T of isMeetJoinDistrLattice d T.
+HB.builders Context d T of isMeetJoinDistrLattice d T.
 
 Fact le_refl : reflexive le. Proof. by move=> x; rewrite le_def meetxx. Qed.
 
@@ -4690,15 +4687,14 @@ HB.instance Definition _ := POrder_Meet_isDistrLattice.Build d T
 
 HB.end.
 
-HB.factory Record POrder_MeetJoin_isLattice (d : unit) T of POrder d T := {
+HB.factory Record POrder_MeetJoin_isLattice (d : disp_t) T of POrder d T := {
   meet : T -> T -> T;
   join : T -> T -> T;
   meetP : forall x y z, (x <= meet y z) = (x <= y) && (x <= z);
   joinP : forall x y z, (join x y <= z) = (x <= z) && (y <= z);
 }.
 
-HB.builders
-  Context (d : unit) T of POrder_MeetJoin_isLattice d T.
+HB.builders Context d T of POrder_MeetJoin_isLattice d T.
 
 Fact meet_lel x y : meet x y <= meet y x.
 Proof.
@@ -4764,7 +4760,7 @@ HB.instance Definition _ :=
 
 HB.end.
 
-HB.factory Record isOrder (d : unit) T of Choice T := {
+HB.factory Record isOrder (d : disp_t) T of Choice T := {
   le : rel T;
   lt : rel T;
   meet : T -> T -> T;
@@ -4777,7 +4773,7 @@ HB.factory Record isOrder (d : unit) T of Choice T := {
   le_total : total le;
 }.
 
-HB.builders Context (d : unit) T of isOrder d T.
+HB.builders Context d T of isOrder d T.
 
 Fact le_refl : reflexive le.
 Proof. by move=> x; case: (le x x) (le_total x x). Qed.
@@ -4822,7 +4818,7 @@ HB.instance Definition _ := DistrLattice_isTotal.Build d T le_total.
 
 HB.end.
 
-HB.factory Record LtOrder (d : unit) T of Choice T := {
+HB.factory Record LtOrder (d : disp_t) T of Choice T := {
   le : rel T;
   lt : rel T;
   meet : T -> T -> T;
@@ -4835,8 +4831,7 @@ HB.factory Record LtOrder (d : unit) T of Choice T := {
   lt_total : forall x y, x != y -> lt x y || lt y x;
 }.
 
-HB.builders
-  Context d T of LtOrder d T.
+HB.builders Context d T of LtOrder d T.
 
 Fact lt_def x y : lt x y = (y != x) && le x y.
 Proof. by rewrite le_def; case: eqVneq => //= ->; rewrite lt_irr. Qed.
@@ -4867,7 +4862,7 @@ HB.instance Definition _ :=
 HB.end.
 
 HB.factory Record MonoTotal disp T of POrder disp T := {
-  disp' : unit;
+  disp' : disp_t;
   T' : orderType disp';
   f : T -> T';
   f_mono : {mono f : x y / x <= y}
@@ -4880,8 +4875,8 @@ HB.end.
 
 Module CancelPartial.
 Section CancelPartial.
-Variables (disp : unit) (T : choiceType).
-Variables (disp' : unit) (T' : porderType disp') (f : T -> T').
+Variables (disp : disp_t) (T : choiceType).
+Variables (disp' : disp_t) (T' : porderType disp') (f : T -> T').
 
 Section PCan.
 Variables (f' : T' -> option T) (f_can : pcancel f f').
@@ -4914,20 +4909,20 @@ Notation PcanPartial := CancelPartial.Pcan.
 Notation CanPartial := CancelPartial.Can.
 
 #[export]
-HB.instance Definition _ (disp : unit) (T : choiceType)
-  (disp' : unit) (T' : porderType disp') (f : T -> T')
+HB.instance Definition _ (disp : disp_t) (T : choiceType)
+  (disp' : disp_t) (T' : porderType disp') (f : T -> T')
   (f' : T' -> option T) (f_can : pcancel f f') : isPOrder disp (pcan_type f_can) :=
   CancelPartial.Pcan disp (f_can : @pcancel _ (pcan_type f_can)  f f').
 
 #[export]
-HB.instance Definition _ (disp : unit) (T : choiceType)
-  (disp' : unit) (T' : porderType disp') (f : T -> T') (f' : T' ->  T)
+HB.instance Definition _ (disp : disp_t) (T : choiceType)
+  (disp' : disp_t) (T' : porderType disp') (f : T -> T') (f' : T' ->  T)
   (f_can : cancel f f') : isPOrder disp (can_type f_can) :=
   CancelPartial.Can disp (f_can : @cancel _ (can_type f_can)  f f').
 
 Section CancelTotal.
-Variables (disp : unit) (T : choiceType).
-Variables (disp' : unit) (T' : orderType disp') (f : T -> T').
+Variables (disp : disp_t) (T : choiceType).
+Variables (disp' : disp_t) (T' : orderType disp') (f : T -> T').
 
 Section PCan.
 
@@ -4962,7 +4957,7 @@ Notation PcanTotal := PCanIsTotal.
 Notation CanTotal := CanIsTotal.
 
 HB.factory Record IsoLattice disp T of POrder disp T := {
-  disp' : unit;
+  disp' : disp_t;
   T' : latticeType disp';
   f : T -> T';
   f' : T' -> T;
@@ -4995,7 +4990,7 @@ HB.instance Definition _ := POrder_isLattice.Build _ T
 HB.end.
 
 HB.factory Record IsoDistrLattice disp T of POrder disp T := {
-  disp' : unit;
+  disp' : disp_t;
   T' : distrLatticeType disp';
   f : T -> T';
   f' : T' -> T;
@@ -5057,7 +5052,7 @@ Section OrderMorphismTheory.
 
 Section Properties.
 
-Variables (d : unit) (T : porderType d) (d' : unit) (T' : porderType d').
+Variables (d : disp_t) (T : porderType d) (d' : disp_t) (T' : porderType d').
 Variables (f : {omorphism T -> T'}).
 
 Lemma omorph_le : {mono f : x y / x <= y}.
@@ -5073,8 +5068,8 @@ End Properties.
 
 Section IdCompFun.
 
-Variables (d : unit) (T : porderType d) (d' : unit) (T' : porderType d').
-Variables (d'' : unit) (T'' : porderType d'').
+Variables (d : disp_t) (T : porderType d) (d' : disp_t) (T' : porderType d').
+Variables (d'' : disp_t) (T'' : porderType d'').
 Variables (f : {omorphism T' -> T''}) (g : {omorphism T -> T'}).
 
 Fact idfun_is_order_morphism : order_morphism (@idfun T).
@@ -5168,7 +5163,7 @@ Section LatticeMorphismTheory.
 
 Section Properties.
 
-Variables (d : unit) (T : latticeType d) (d' : unit) (T' : latticeType d').
+Variables (d : disp_t) (T : latticeType d) (d' : disp_t) (T' : latticeType d').
 
 Lemma omorphI (f : {mlmorphism T -> T'}) : {morph f : x y / x `&` y}.
 Proof. exact: omorphI_subproof. Qed.
@@ -5180,8 +5175,8 @@ End Properties.
 
 Section IdCompFun.
 
-Variables (d : unit) (T : latticeType d) (d' : unit) (T' : latticeType d').
-Variables (d'' : unit) (T'' : latticeType d'').
+Variables (d : disp_t) (T : latticeType d) (d' : disp_t) (T' : latticeType d').
+Variables (d'' : disp_t) (T'' : latticeType d'').
 
 Section MeetCompFun.
 
@@ -5257,7 +5252,7 @@ Section BLatticeMorphismTheory.
 
 Section Properties.
 
-Variables (d : unit) (T : bLatticeType d) (d' : unit) (T' : bLatticeType d').
+Variables (d : disp_t) (T : bLatticeType d) (d' : disp_t) (T' : bLatticeType d').
 Variables (f : {blmorphism T -> T'}).
 
 Lemma omorph0 : f \bot = \bot.
@@ -5267,8 +5262,8 @@ End Properties.
 
 Section IdCompFun.
 
-Variables (d : unit) (T : bLatticeType d) (d' : unit) (T' : bLatticeType d').
-Variables (d'' : unit) (T'' : bLatticeType d'').
+Variables (d : disp_t) (T : bLatticeType d) (d' : disp_t) (T' : bLatticeType d').
+Variables (d'' : disp_t) (T'' : bLatticeType d'').
 Variables (f : {blmorphism T' -> T''}) (g : {blmorphism T -> T'}).
 
 Fact idfun_is_bottom_morphism : (@idfun T) \bot = \bot. Proof. by []. Qed.
@@ -5292,7 +5287,7 @@ Section TLatticeMorphismTheory.
 
 Section Properties.
 
-Variables (d : unit) (T : tLatticeType d) (d' : unit) (T' : tLatticeType d').
+Variables (d : disp_t) (T : tLatticeType d) (d' : disp_t) (T' : tLatticeType d').
 Variables (f : {tlmorphism T -> T'}).
 
 Lemma omorph1 : f \top = \top.
@@ -5302,8 +5297,8 @@ End Properties.
 
 Section IdCompFun.
 
-Variables (d : unit) (T : tLatticeType d) (d' : unit) (T' : tLatticeType d').
-Variables (d'' : unit) (T'' : tLatticeType d'').
+Variables (d : disp_t) (T : tLatticeType d) (d' : disp_t) (T' : tLatticeType d').
+Variables (d'' : disp_t) (T'' : tLatticeType d'').
 Variables (f : {tlmorphism T' -> T''}) (g : {tlmorphism T -> T'}).
 
 Fact idfun_is_top_morphism : (@idfun T) \top = \top. Proof. by []. Qed.
@@ -5325,7 +5320,7 @@ End TLatticeMorphismTheory.
 Module Import ClosedPredicates.
 Section ClosedPredicates.
 
-Variable (d : unit) (T : latticeType d).
+Variable (d : disp_t) (T : latticeType d).
 Variable S : {pred T}.
 
 Definition meet_closed := {in S &, forall u v, u `&` v \in S}.
@@ -5411,7 +5406,7 @@ HB.end.
 Module Import LatticePred.
 Section LatticePred.
 
-Variables (d : unit) (T : latticeType d).
+Variables (d : disp_t) (T : latticeType d).
 
 Lemma opredI (S : meetLatticeClosed T) : {in S &, forall u v, u `&` v \in S}.
 Proof. exact: opredI. Qed.
@@ -5423,7 +5418,7 @@ End LatticePred.
 
 Section BLatticePred.
 
-Variables (d : unit) (T : bLatticeType d).
+Variables (d : disp_t) (T : bLatticeType d).
 
 Lemma opred0 (S : bLatticeClosed T) : \bot \in S.
 Proof. exact: opred0. Qed.
@@ -5436,7 +5431,7 @@ End BLatticePred.
 
 Section TLatticePred.
 
-Variables (d : unit) (T : tLatticeType d).
+Variables (d : disp_t) (T : tLatticeType d).
 
 Lemma opred1 (S : tLatticeClosed T) : \top \in S.
 Proof. exact: opred1. Qed.
@@ -5459,8 +5454,8 @@ HB.structure Definition SubPOrder d (T : porderType d) S d' :=
 
 Module Import SubPOrderTheory.
 Section SubPOrderTheory.
-Context (d : unit) (T : porderType d) (S : pred T).
-Context (d' : unit) (U : SubPOrder.type S d').
+Context (d : disp_t) (T : porderType d) (S : pred T).
+Context (d' : disp_t) (U : SubPOrder.type S d').
 Local Notation val := (val : U -> T).
 HB.instance Definition _ := isOrderMorphism.Build d' U d T val val_le_subproof.
 Lemma leEsub x y : (x <= y) = (val x <= val y).
@@ -5470,7 +5465,7 @@ Proof. by rewrite omorph_lt. Qed.
 End SubPOrderTheory.
 End SubPOrderTheory.
 
-HB.factory Record SubChoice_isSubPOrder d (T : porderType d) S (d' : unit) U
+HB.factory Record SubChoice_isSubPOrder d (T : porderType d) S (d' : disp_t) U
     of SubChoice T S U := {}.
 
 HB.builders Context d T S d' U of SubChoice_isSubPOrder d T S d' U.
@@ -5480,7 +5475,7 @@ HB.instance Definition _ := isSubPOrder.Build d T S d' U valD.
 HB.end.
 
 #[export]
-HB.instance Definition _ d (T : porderType d) (S : pred T) (d' : unit)
+HB.instance Definition _ d (T : porderType d) (S : pred T) (d' : disp_t)
   (U : subType S) := SubChoice_isSubPOrder.Build d T S d' (sub_type U).
 
 HB.mixin Record isMeetSubLattice d (T : latticeType d) (S : pred T) d' U
@@ -5558,12 +5553,12 @@ HB.structure Definition SubTBLattice d (T : latticeType d) S d' :=
   { U of @SubLattice d T S d' U & TBLattice d' U }.
 
 #[export]
-HB.instance Definition _ (d : unit) (T : latticeType d) (S : pred T)
+HB.instance Definition _ (d : disp_t) (T : latticeType d) (S : pred T)
     d' (U : MeetSubLattice.type S d') :=
   isMeetLatticeMorphism.Build d' U d T val valI_subproof.
 
 #[export]
-HB.instance Definition _ (d : unit) (T : latticeType d) (S : pred T)
+HB.instance Definition _ (d : disp_t) (T : latticeType d) (S : pred T)
     d' (U : JoinSubLattice.type S d') :=
   isJoinLatticeMorphism.Build d' U d T val valU_subproof.
 
@@ -5607,7 +5602,7 @@ HB.instance Definition _ := isMeetSubLattice.Build d T S d' U valI.
 HB.instance Definition _ := isJoinSubLattice.Build d T S d' U valU.
 HB.end.
 
-HB.factory Record SubChoice_isSubLattice d (T : latticeType d) S (d' : unit) U
+HB.factory Record SubChoice_isSubLattice d (T : latticeType d) S (d' : disp_t) U
     of SubChoice T S U := {
   opredI_subproof : meet_closed S;
   opredU_subproof : join_closed S;
@@ -5641,7 +5636,7 @@ HB.structure Definition BSubTLattice d (T : bLatticeType d) S d' :=
   { U of @BSubLattice d T S d' U & TBLattice d' U }.
 
 #[export]
-HB.instance Definition _ (d : unit) (T : bLatticeType d) (S : pred T)
+HB.instance Definition _ (d : disp_t) (T : bLatticeType d) (S : pred T)
     d' (U : BJoinSubLattice.type S d') :=
   isBLatticeMorphism.Build d' U d T val val0_subproof.
 
@@ -5662,8 +5657,8 @@ Fact val0 : (val : U -> T) \bot = \bot. Proof. by rewrite SubK. Qed.
 HB.instance Definition _ := isBSubLattice.Build d T S d' U val0.
 HB.end.
 
-HB.factory Record SubChoice_isBSubLattice d (T : bLatticeType d) S (d' : unit) U
-    of SubChoice T S U := {
+HB.factory Record SubChoice_isBSubLattice d (T : bLatticeType d) S
+    (d' : disp_t) U of SubChoice T S U := {
   opredI_subproof : meet_closed S;
   opredU_subproof : join_closed S;
   opred0_subproof : \bot \in S;
@@ -5698,7 +5693,7 @@ HB.structure Definition TSubBLattice d (T : tLatticeType d) S d' :=
   { U of @TSubLattice d T S d' U & TBLattice d' U }.
 
 #[export]
-HB.instance Definition _ (d : unit) (T : tLatticeType d) (S : pred T)
+HB.instance Definition _ (d : disp_t) (T : tLatticeType d) (S : pred T)
     d' (U : TMeetSubLattice.type S d') :=
   isTLatticeMorphism.Build d' U d T val val1_subproof.
 
@@ -5719,8 +5714,8 @@ Fact val1 : (val : U -> T) \top = \top. Proof. by rewrite SubK. Qed.
 HB.instance Definition _ := isTSubLattice.Build d T S d' U val1.
 HB.end.
 
-HB.factory Record SubChoice_isTSubLattice d (T : tLatticeType d) S (d' : unit) U
-    of SubChoice T S U := {
+HB.factory Record SubChoice_isTSubLattice d (T : tLatticeType d) S
+    (d' : disp_t) U of SubChoice T S U := {
   opredI_subproof : meet_closed S;
   opredU_subproof : join_closed S;
   opred1_subproof : \top \in S;
@@ -5738,7 +5733,7 @@ HB.structure Definition TBSubLattice d (T : tbLatticeType d) S d' :=
   { U of @BSubLattice d T S d' U & @TSubLattice d T S d' U}.
 
 #[export]
-HB.instance Definition _ (d : unit) (T : tbLatticeType d) (S : pred T) d'
+HB.instance Definition _ (d : disp_t) (T : tbLatticeType d) (S : pred T) d'
     (U : TBSubLattice.type S d') := BLatticeMorphism.on (val : U -> T).
 
 HB.factory Record SubPOrder_isTBSubLattice d (T : tbLatticeType d) S d' U
@@ -5755,7 +5750,7 @@ HB.instance Definition _ := SubPOrder_isTSubLattice.Build d T S d' U
 HB.end.
 
 HB.factory Record SubChoice_isTBSubLattice d (T : tbLatticeType d) S
-    (d' : unit) U of SubChoice T S U := {
+    (d' : disp_t) U of SubChoice T S U := {
   opredI_subproof : meet_closed S;
   opredU_subproof : join_closed S;
   opred0_subproof : \bot \in S;
@@ -5794,7 +5789,7 @@ HB.instance Definition _ := SubPOrder_isSubLattice.Build d T S d' U opredI opred
 HB.instance Definition _ := SubLattice_isSubOrder.Build d T S d' U.
 HB.end.
 
-HB.factory Record SubChoice_isSubOrder d (T : orderType d) S (d' : unit) U
+HB.factory Record SubChoice_isSubOrder d (T : orderType d) S (d' : disp_t) U
     of @SubChoice T S U := {}.
 
 HB.builders Context d T S d' U of SubChoice_isSubOrder d T S d' U.
@@ -5913,7 +5908,7 @@ HB.export SubOrderExports.
 Module DeprecatedSubOrder.
 
 Section Total.
-Context {disp : unit} {T : orderType disp} (P : {pred T}) (sT : subType P).
+Context {disp : disp_t} {T : orderType disp} (P : {pred T}) (sT : subType P).
 
 #[export]
 HB.instance Definition _ :=
@@ -5963,7 +5958,7 @@ HB.export DeprecatedSubOrder.Exports.
 Module NatOrder.
 Section NatOrder.
 
-Fact nat_display : unit. Proof. exact: tt. Qed.
+Fact nat_display : disp_t. Proof. exact: tt. Qed.
 
 Lemma ltn_def x y : (x < y)%N = (y != x) && (x <= y)%N.
 Proof. by rewrite ltn_neqAle eq_sym. Qed.
@@ -5998,7 +5993,7 @@ HB.export NatOrder.Exports.
 Module NatMonotonyTheory.
 Section NatMonotonyTheory.
 
-Context {disp : unit} {T : porderType disp}.
+Context {disp : disp_t} {T : porderType disp}.
 Variables (D : {pred nat}) (f : nat -> T).
 Hypothesis Dconvex : {in D &, forall i j k, i < k < j -> k \in D}.
 
@@ -6075,14 +6070,14 @@ End NatMonotonyTheory.
 (****************************************************************************)
 (* The Module DvdSyntax introduces a new set of notations using the newly   *)
 (* created display dvd_display. We first define the display as an opaque    *)
-(* definition of type unit, and we use it as the first argument of the      *)
+(* definition of type disp_t, and we use it as the first argument of the    *)
 (* operator which display we want to change from the default one (here le,  *)
 (* lt, dvd sdvd, meet, join, top and bottom, as well as big op notations on *)
 (* gcd and lcm). This notations will now be used for any ordered type which *)
 (* first parameter is set to dvd_display.                                   *)
 (****************************************************************************)
 
-Fact dvd_display : unit. Proof. exact: tt. Qed.
+Fact dvd_display : disp_t. Proof. exact: tt. Qed.
 
 Module DvdSyntax.
 
@@ -6247,7 +6242,7 @@ HB.export NatDvd.Exports.
 Module OrdinalOrder.
 Section OrdinalOrder.
 
-Fact ord_display : unit. Proof. exact: tt. Qed.
+Fact ord_display : disp_t. Proof. exact: tt. Qed.
 
 Section PossiblyTrivial.
 Variable (n : nat).
@@ -6296,7 +6291,7 @@ Module BoolOrder.
 Section BoolOrder.
 Implicit Types (x y : bool).
 
-Fact bool_display : unit. Proof. exact: tt. Qed.
+Fact bool_display : disp_t. Proof. exact: tt. Qed.
 
 Fact andbE x y : x && y = if (x < y)%N then x else y.
 Proof. by case: x y => [] []. Qed.
@@ -6347,7 +6342,7 @@ HB.export BoolOrder.Exports.
 (* Definition of prod_display *)
 (******************************)
 
-Fact prod_display : unit. Proof. by []. Qed.
+Fact prod_display : disp_t. Proof. by []. Qed.
 
 Module Import ProdSyntax.
 
@@ -6464,7 +6459,7 @@ End ProdSyntax.
 (* Definition of lexi_display *)
 (******************************)
 
-Fact lexi_display : unit. Proof. by []. Qed.
+Fact lexi_display : disp_t. Proof. by []. Qed.
 
 Module Import LexiSyntax.
 
@@ -6533,9 +6528,9 @@ Section ProdOrder.
 
 Local Open Scope type_scope. (* FIXME *)
 
-Definition type (disp : unit) (T T' : Type) := T * T'.
+Definition type (disp : disp_t) (T T' : Type) := T * T'.
 
-Context {disp1 disp2 disp3 : unit}.
+Context {disp1 disp2 disp3 : disp_t}.
 
 Local Notation "T * T'" := (type disp3 T T') : type_scope.
 
@@ -6746,7 +6741,7 @@ HB.export ProdOrder.Exports.
 
 Module DefaultProdOrder.
 Section DefaultProdOrder.
-Context {disp1 disp2 : unit}.
+Context {disp1 disp2 : disp_t}.
 
 (* FIXME: Scopes of arguments are broken in several places.                   *)
 (* FIXME: Declaring a bunch of copies is still a bit painful.                 *)
@@ -6795,7 +6790,7 @@ End DefaultProdOrder.
 Module SigmaOrder.
 Section SigmaOrder.
 
-Context {disp1 disp2 : unit}.
+Context {disp1 disp2 : disp_t}.
 
 Section POrder.
 
@@ -6932,9 +6927,9 @@ Section ProdLexiOrder.
 
 Local Open Scope type_scope. (* FIXME *)
 
-Definition type (disp : unit) (T T' : Type) := T * T'.
+Definition type (disp : disp_t) (T T' : Type) := T * T'.
 
-Context {disp1 disp2 disp3 : unit}.
+Context {disp1 disp2 disp3 : disp_t}.
 
 Local Notation "T * T'" := (type disp3 T T') : type_scope.
 
@@ -7066,7 +7061,7 @@ HB.export ProdLexiOrder.Exports.
 
 Module DefaultProdLexiOrder.
 Section DefaultProdLexiOrder.
-Context {disp1 disp2 : unit}.
+Context {disp1 disp2 : disp_t}.
 
 HB.instance Definition _ (T : porderType disp1) (T' : porderType disp2) :=
   POrder.copy (T * T')%type (T *l T').
@@ -7086,9 +7081,9 @@ End DefaultProdLexiOrder.
 Module SeqProdOrder.
 Section SeqProdOrder.
 
-Definition type (disp : unit) T := seq T.
+Definition type (disp : disp_t) T := seq T.
 
-Context {disp disp' : unit}.
+Context {disp disp' : disp_t}.
 
 Local Notation seq := (type disp').
 
@@ -7246,7 +7241,7 @@ HB.export SeqProdOrder.Exports.
 
 Module DefaultSeqProdOrder.
 Section DefaultSeqProdOrder.
-Context {disp : unit}.
+Context {disp : disp_t}.
 
 HB.instance Definition _ (T : porderType disp) :=
   POrder.copy (seq T) (seqprod T).
@@ -7266,9 +7261,9 @@ End DefaultSeqProdOrder.
 Module SeqLexiOrder.
 Section SeqLexiOrder.
 
-Definition type (disp : unit) T := seq T.
+Definition type (disp : disp_t) T := seq T.
 
-Context {disp disp' : unit}.
+Context {disp disp' : disp_t}.
 
 Local Notation seq := (type disp').
 
@@ -7417,7 +7412,7 @@ HB.export SeqLexiOrder.Exports.
 
 Module DefaultSeqLexiOrder.
 Section DefaultSeqLexiOrder.
-Context {disp : unit}.
+Context {disp : disp_t}.
 
 HB.instance Definition _ (T : porderType disp) :=
   POrder.copy (seq T) (seqlexi T).
@@ -7439,9 +7434,9 @@ Import DefaultSeqProdOrder.
 
 Section TupleProdOrder.
 
-Definition type (disp : unit) n T := n.-tuple T.
+Definition type (disp : disp_t) n T := n.-tuple T.
 
-Context {disp disp' : unit}.
+Context {disp disp' : disp_t}.
 Local Notation "n .-tuple" := (type disp' n) : type_scope.
 
 Section Basics.
@@ -7700,7 +7695,7 @@ HB.export TupleProdOrder.Exports.
 
 Module DefaultTupleProdOrder.
 Section DefaultTupleProdOrder.
-Context {disp : unit}.
+Context {disp : disp_t}.
 
 HB.instance Definition _ n (T : porderType disp) :=
   POrder.copy (n.-tuple T) (n.-tupleprod T).
@@ -7741,9 +7736,9 @@ Module TupleLexiOrder.
 Section TupleLexiOrder.
 Import DefaultSeqLexiOrder.
 
-Definition type (disp : unit) n T := n.-tuple T.
+Definition type (disp : disp_t) n T := n.-tuple T.
 
-Context {disp disp' : unit}.
+Context {disp disp' : disp_t}.
 Local Notation "n .-tuple" := (type disp' n) : type_scope.
 
 Section Basics.
@@ -7887,7 +7882,7 @@ HB.export TupleLexiOrder.Exports.
 
 Module DefaultTupleLexiOrder.
 Section DefaultTupleLexiOrder.
-Context {disp : unit}.
+Context {disp : disp_t}.
 
 HB.instance Definition _ n (T : porderType disp) :=
   POrder.copy (n.-tuple T) (n.-tuplelexi T).
@@ -7916,9 +7911,9 @@ End DefaultTupleLexiOrder.
 Module SetSubsetOrder.
 Section SetSubsetOrder.
 
-Definition type (disp : unit) (T : finType) := {set T}.
+Definition type (disp : disp_t) (T : finType) := {set T}.
 
-Context {disp : unit} {T : finType}.
+Context {disp : disp_t} {T : finType}.
 Local Notation "{ 'subset' T }" := (type disp T).
 Implicit Type (A B C : {subset T}).
 
@@ -7975,7 +7970,7 @@ Proof. by []. Qed.
 Lemma complEsubset A : ~` A = ~: A.
 Proof. by []. Qed.
 
-Fact subset_display : unit. Proof. exact: tt. Qed.
+Fact subset_display : disp_t. Proof. exact: tt. Qed.
 
 End SetSubsetOrder.
 
@@ -8002,7 +7997,7 @@ Export SetSubsetOrder.Exports.
 
 Module DefaultSetSubsetOrder.
 Section DefaultSetSubsetOrder.
-Context {disp : unit}.
+Context {disp : disp_t}.
 
 HB.instance Definition _ (T : finType) := CTBDistrLattice.copy {set T} {subset T}.
 
@@ -8012,7 +8007,7 @@ End DefaultSetSubsetOrder.
 Notation enum A := (sort <=%O (enum A)).
 
 Section Enum.
-Variables (d : unit) (T : finPOrderType d).
+Variables (d : disp_t) (T : finPOrderType d).
 
 Lemma cardE (A : {pred T}) : #|A| = size (enum A).
 Proof. by rewrite size_sort cardE. Qed.
@@ -8121,7 +8116,7 @@ Qed.
 Module Import EnumVal.
 Section EnumVal.
 Import OrdinalOrder.Exports.
-Variables (d : unit) (T : finPOrderType d).
+Variables (d : disp_t) (T : finPOrderType d).
 Implicit Types (x : T) (A : {pred T}).
 
 Definition enum_rank_in x0 A (Ax0 : x0 \in A) x :=
