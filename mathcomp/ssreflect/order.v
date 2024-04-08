@@ -1064,18 +1064,23 @@ Module Order.
 
 #[projections(primitive)] Record disp_t := Disp {d1 : unit; d2 : unit}.
 
-HB.mixin Record isPOrder (d : disp_t) T of Equality T := {
+#[key="T", primitive]
+HB.mixin Record isDuallyPOrder (d : disp_t) T of Equality T := {
   le       : rel T;
   lt       : rel T;
   lt_def   : forall x y, lt x y = (y != x) && (le x y);
+  gt_def   : forall x y, lt y x = (y != x) && (le y x);
   le_refl  : reflexive     le;
+  ge_refl  : reflexive     (fun x y => le y x);
   le_anti  : antisymmetric le;
+  ge_anti  : antisymmetric (fun x y => le y x);
   le_trans : transitive    le;
+  ge_trans : transitive    (fun x y => le y x);
 }.
 
 #[short(type="porderType")]
 HB.structure Definition POrder (d : disp_t) :=
-  { T of Choice T & isPOrder d T }.
+  { T of Choice T & isDuallyPOrder d T }.
 
 #[key="T", primitive]
 HB.mixin Record hasBottom d T of POrder d T := {
@@ -1759,27 +1764,16 @@ HB.instance Definition _ (T : choiceType) := Choice.on T^d.
 HB.instance Definition _ (T : countType) := Countable.on T^d.
 HB.instance Definition _ (T : finType) := Finite.on T^d.
 
-Section DualPOrder.
+HB.instance Definition _ (d : disp_t) (T : porderType d) :=
+  isDuallyPOrder.Build (dual_display d) T^d
+    gt_def lt_def ge_refl le_refl ge_anti le_anti ge_trans le_trans.
 
-Context {disp : disp_t}.
-Variable T : porderType disp.
-
-Lemma dual_lt_def (x y : T) : gt x y = (y != x) && ge x y.
-Proof. by rewrite /= lt_def eq_sym. Qed.
-
-Fact dual_le_anti : antisymmetric (@ge _ T).
-Proof. by move=> x y /andP [xy yx]; apply/le_anti/andP; split. Qed.
-
-HB.instance Definition _ :=
-  isPOrder.Build
-    (dual_display disp) (T^d)
-    dual_lt_def le_refl dual_le_anti
-    (fun y z x zy yx => @le_trans _ _ y x z yx zy).
-
-Lemma leEdual (x y : T) : (x <=^d y :> T^d) = (y <= x). Proof. by []. Qed.
-Lemma ltEdual (x y : T) : (x <^d y :> T^d) = (y < x). Proof. by []. Qed.
-
-End DualPOrder.
+Lemma leEdual (d : disp_t) (T : porderType d) (x y : T) :
+  (x <=^d y :> T^d) = (y <= x).
+Proof. by []. Qed.
+Lemma ltEdual (d : disp_t) (T : porderType d) (x y : T) :
+  (x <^d y :> T^d) = (y < x).
+Proof. by []. Qed.
 
 HB.instance Definition _ d (T : finPOrderType d) := FinPOrder.on T^d.
 
@@ -4474,6 +4468,29 @@ End CTBDistrLatticeTheory.
 (*************)
 
 (* porderType *)
+
+HB.factory Record isPOrder (d : disp_t) T of Equality T := {
+  le       : rel T;
+  lt       : rel T;
+  lt_def   : forall x y, lt x y = (y != x) && (le x y);
+  le_refl  : reflexive     le;
+  le_anti  : antisymmetric le;
+  le_trans : transitive    le;
+}.
+
+HB.builders Context d T of isPOrder d T.
+
+Fact gt_def x y : lt y x = (y != x) && (le y x).
+Proof. by rewrite lt_def eq_sym. Qed.
+
+Fact ge_anti : antisymmetric (fun x y => le y x).
+Proof. by move=> ? ? /le_anti ->. Qed.
+
+HB.instance Definition _ := @isDuallyPOrder.Build d T
+  le lt lt_def gt_def le_refl le_refl le_anti ge_anti
+  le_trans (fun _ _ _ Hxy Hyz => le_trans Hyz Hxy).
+
+HB.end.
 
 HB.factory Record Le_isPOrder (d : disp_t) T of Equality T := {
   le       : rel T;
