@@ -1075,13 +1075,13 @@ HB.mixin Record isPOrder (d : unit) T of Equality T := {
 HB.structure Definition POrder (d : unit) :=
   { T of Choice T & isPOrder d T }.
 
-#[key="T"]
+#[key="T", primitive]
 HB.mixin Record hasBottom d T of POrder d T := {
   bottom : T;
   le0x : forall x, le bottom x;
 }.
 
-#[key="T"]
+#[key="T", primitive]
 HB.mixin Record hasTop d T of POrder d T := {
   top : T;
   lex1 : forall x, le x top;
