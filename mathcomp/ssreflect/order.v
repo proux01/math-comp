@@ -1078,62 +1078,6 @@ HB.mixin Record isPOrder (d : unit) T of Equality T := {
 HB.structure Definition POrder (d : unit) :=
   { T of Choice T & isPOrder d T }.
 
-HB.factory Record Le_isPOrder (d : unit) T of Equality T := {
-  le       : rel T;
-  le_refl  : reflexive     le;
-  le_anti  : antisymmetric le;
-  le_trans : transitive    le;
-}.
-
-HB.builders Context (d : unit) T of Le_isPOrder d T.
-(* TODO: print nice error message when keyed type is not provided *)
-HB.instance Definition _ := @isPOrder.Build d T
-  le _ (fun _ _ => erefl) le_refl le_anti le_trans.
-HB.end.
-
-HB.factory Record LtLe_isPOrder (d : unit) T of Equality T := {
-  le : rel T;
-  lt : rel T;
-  le_def   : forall x y, le x y = (x == y) || lt x y;
-  lt_irr   : irreflexive lt;
-  lt_trans : transitive lt;
-}.
-HB.builders Context (d : unit) T of LtLe_isPOrder d T.
-
-Let le_refl : reflexive le. Proof. by move=> x; rewrite le_def eqxx. Qed.
-
-Let le_anti : antisymmetric le.
-Proof.
-move=> x y; rewrite !le_def [y == _]eq_sym.
-have [//|neq_xy/=] := eqVneq x y => /andP[xy yx].
-by have := lt_trans xy yx; rewrite lt_irr.
-Qed.
-
-Let le_trans : transitive le.
-Proof.
-move=> y x z; rewrite !le_def; case: (eqVneq x y) => [->|]//= neq_xy.
-by case: (eqVneq y z) => /= [<- ->|_ /lt_trans yx /yx ->]; rewrite orbT.
-Qed.
-
-Let lt_def x y : lt x y = (y != x) && (le x y).
-Proof. by rewrite le_def; case: eqVneq => //= ->; rewrite lt_irr. Qed.
-
-HB.instance Definition _ := @isPOrder.Build d T
-  le lt lt_def le_refl le_anti le_trans.
-
-HB.end.
-
-HB.factory Record Lt_isPOrder (d : unit) T of Equality T := {
-  lt       : rel T;
-  lt_irr   : irreflexive lt;
-  lt_trans : transitive  lt;
-}.
-#[key="T"]
-HB.builders Context (d : unit) (T : Type) of Lt_isPOrder d T.
-HB.instance Definition _ := @LtLe_isPOrder.Build d T
-  _ lt (fun _ _ => erefl) lt_irr lt_trans.
-HB.end.
-
 Module POrderExports.
 Arguments le_trans {d s} [_ _ _].
 #[deprecated(since="mathcomp 2.0.0", note="Use POrder.clone instead.")]
@@ -4457,6 +4401,71 @@ Proof. by elim/big_rec2: _=> [|i x y ? <-]; rewrite ?compl1 ?complI. Qed.
 End CTBDistrLatticeTheory.
 End CTBDistrLatticeTheory.
 
+(*************)
+(* FACTORIES *)
+(*************)
+
+(* porderType *)
+
+HB.factory Record Le_isPOrder (d : unit) T of Equality T := {
+  le       : rel T;
+  le_refl  : reflexive     le;
+  le_anti  : antisymmetric le;
+  le_trans : transitive    le;
+}.
+
+HB.builders Context (d : unit) T of Le_isPOrder d T.
+(* TODO: print nice error message when keyed type is not provided *)
+HB.instance Definition _ := @isPOrder.Build d T
+  le _ (fun _ _ => erefl) le_refl le_anti le_trans.
+HB.end.
+
+HB.factory Record LtLe_isPOrder (d : unit) T of Equality T := {
+  le : rel T;
+  lt : rel T;
+  le_def   : forall x y, le x y = (x == y) || lt x y;
+  lt_irr   : irreflexive lt;
+  lt_trans : transitive lt;
+}.
+
+HB.builders Context (d : unit) T of LtLe_isPOrder d T.
+
+Let le_refl : reflexive le. Proof. by move=> x; rewrite le_def eqxx. Qed.
+
+Let le_anti : antisymmetric le.
+Proof.
+move=> x y; rewrite !le_def [y == _]eq_sym.
+have [//|neq_xy/=] := eqVneq x y => /andP[xy yx].
+by have := lt_trans xy yx; rewrite lt_irr.
+Qed.
+
+Let le_trans : transitive le.
+Proof.
+move=> y x z; rewrite !le_def; case: (eqVneq x y) => [->|]//= neq_xy.
+by case: (eqVneq y z) => /= [<- ->|_ /lt_trans yx /yx ->]; rewrite orbT.
+Qed.
+
+Let lt_def x y : lt x y = (y != x) && (le x y).
+Proof. by rewrite le_def; case: eqVneq => //= ->; rewrite lt_irr. Qed.
+
+HB.instance Definition _ := @isPOrder.Build d T
+  le lt lt_def le_refl le_anti le_trans.
+
+HB.end.
+
+HB.factory Record Lt_isPOrder (d : unit) T of Equality T := {
+  lt       : rel T;
+  lt_irr   : irreflexive lt;
+  lt_trans : transitive  lt;
+}.
+
+HB.builders Context (d : unit) (T : Type) of Lt_isPOrder d T.
+HB.instance Definition _ := @LtLe_isPOrder.Build d T
+  _ lt (fun _ _ => erefl) lt_irr lt_trans.
+HB.end.
+
+(* distrLatticeType *)
+
 HB.factory Record POrder_Meet_isDistrLattice d T of POrder d T := {
   meet : T -> T -> T;
   join : T -> T -> T;
@@ -4478,6 +4487,8 @@ HB.instance Definition _ :=
   Lattice_Meet_isDistrLattice.Build d T meetUl.
 
 HB.end.
+
+(* orderType *)
 
 HB.factory Record Lattice_isTotal d T of Lattice d T := {
   le_total : total (<=%O : rel T)
