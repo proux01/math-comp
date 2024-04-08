@@ -3722,6 +3722,54 @@ Arguments bigmax_eq_arg {disp T I} x j.
 Arguments eq_bigmin {disp T I x} j.
 Arguments eq_bigmax {disp T I x} j.
 
+(* FIXME: lemmas in the following section should hold for any porderType *)
+Module Import DualTotalTheory.
+Section DualTotalTheory.
+Context {disp : unit} {T : orderType disp}.
+Implicit Type s : seq T.
+
+Lemma sorted_filter_gt x s :
+  sorted <=%O s -> [seq y <- s | x < y] = drop (count (<= x) s) s.
+Proof.
+move=> s_sorted; rewrite count_le_gt -[LHS]revK -filter_rev.
+rewrite (@sorted_filter_lt _ T^d); first by rewrite take_rev revK count_rev.
+by rewrite rev_sorted.
+Qed.
+
+Lemma sorted_filter_ge x s :
+  sorted <=%O s -> [seq y <- s | x <= y] = drop (count (< x) s) s.
+Proof.
+move=> s_sorted; rewrite count_lt_ge -[LHS]revK -filter_rev.
+rewrite (@sorted_filter_le _ T^d); first by rewrite take_rev revK count_rev.
+by rewrite rev_sorted.
+Qed.
+
+Lemma nth_count_ge x x0 s i : sorted <=%O s ->
+  (count (< x) s <= i < size s)%N -> x <= nth x0 s i.
+Proof.
+move=> ss /andP[ige ilt]; rewrite -(subnKC ige) -nth_drop -sorted_filter_ge //.
+apply/(all_nthP _ (filter_all _ _)).
+by rewrite size_filter ltn_subLR // count_lt_ge subnK // count_size.
+Qed.
+
+Lemma nth_count_gt x x0 s i : sorted <=%O s ->
+  (count (<= x) s <= i < size s)%N -> x < nth x0 s i.
+Proof.
+move=> ss /andP[ige ilt]; rewrite -(subnKC ige) -nth_drop -sorted_filter_gt //.
+apply/(all_nthP _ (filter_all _ _)).
+by rewrite size_filter ltn_subLR // count_le_gt subnK // count_size.
+Qed.
+
+Lemma nth_count_eq x x0 s i : sorted <=%O s ->
+  (count (< x) s <= i < count (<= x) s)%N -> nth x0 s i = x.
+Proof.
+move=> ss /andP[ige ilt]; apply/le_anti.
+by rewrite nth_count_le// nth_count_ge// ige (leq_trans ilt (count_size _ _)).
+Qed.
+
+End DualTotalTheory.
+End DualTotalTheory.
+
 (* contra lemmas *)
 
 Section ContraTheory.
@@ -7861,54 +7909,6 @@ HB.instance Definition _ n (T : finOrderType disp) :=
 End DefaultTupleLexiOrder.
 End DefaultTupleLexiOrder.
 
-Module Import DualOrderTheory.
-Section DualOrderTheory.
-
-Context {disp : unit} {T : orderType disp}.
-Implicit Type s : seq T.
-
-Lemma sorted_filter_gt x s :
-  sorted <=%O s -> [seq y <- s | x < y] = drop (count (<= x) s) s.
-Proof.
-move=> s_sorted; rewrite count_le_gt -[LHS]revK -filter_rev.
-rewrite (@sorted_filter_lt _ T^d); first by rewrite take_rev revK count_rev.
-by rewrite rev_sorted.
-Qed.
-
-Lemma sorted_filter_ge x s :
-  sorted <=%O s -> [seq y <- s | x <= y] = drop (count (< x) s) s.
-Proof.
-move=> s_sorted; rewrite count_lt_ge -[LHS]revK -filter_rev.
-rewrite (@sorted_filter_le _ T^d); first by rewrite take_rev revK count_rev.
-by rewrite rev_sorted.
-Qed.
-
-Lemma nth_count_ge x x0 s i : sorted <=%O s ->
-  (count (< x) s <= i < size s)%N -> x <= nth x0 s i.
-Proof.
-move=> ss /andP[ige ilt]; rewrite -(subnKC ige) -nth_drop -sorted_filter_ge //.
-apply/(all_nthP _ (filter_all _ _)).
-by rewrite size_filter ltn_subLR // count_lt_ge subnK // count_size.
-Qed.
-
-Lemma nth_count_gt x x0 s i : sorted <=%O s ->
-  (count (<= x) s <= i < size s)%N -> x < nth x0 s i.
-Proof.
-move=> ss /andP[ige ilt]; rewrite -(subnKC ige) -nth_drop -sorted_filter_gt //.
-apply/(all_nthP _ (filter_all _ _)).
-by rewrite size_filter ltn_subLR // count_le_gt subnK // count_size.
-Qed.
-
-Lemma nth_count_eq x x0 s i : sorted <=%O s ->
-  (count (< x) s <= i < count (<= x) s)%N -> nth x0 s i = x.
-Proof.
-move=> ss /andP[ige ilt]; apply/le_anti.
-by rewrite nth_count_le// nth_count_ge// ige (leq_trans ilt (count_size _ _)).
-Qed.
-
-End DualOrderTheory.
-End DualOrderTheory.
-
 (*********************************************)
 (* We declare a "copy" of the sets,          *)
 (* which is canonically ordered by inclusion *)
@@ -8267,7 +8267,7 @@ Export TLatticeTheory.
 Export TBLatticeTheory.
 Export BDistrLatticeTheory.
 Export TBDistrLatticeTheory.
-Export DualOrderTheory. (* FIXME? *)
+Export DualTotalTheory. (* FIXME? *)
 Export DualOrder.
 
 Export OrderMorphismTheory.
