@@ -480,19 +480,17 @@ Reserved Notation "x < y ?<= 'if' c" (at level 70, y, c at next level,
 Reserved Notation "x < y ?<= 'if' c :> T" (at level 70, y, c at next level,
   format "x '[hv'  <  y '/'  ?<=  'if'  c  :> T ']'").
 
-(* Reserved notation for lattice operations. *)
+(* Reserved notations for bottom/top elements *)
+Reserved Notation "\bot" (at level 0).
+Reserved Notation "\top" (at level 0).
+
+(* Reserved notations for lattice operations *)
 Reserved Notation "A `&` B"  (at level 48, left associativity).
 Reserved Notation "A `|` B" (at level 52, left associativity).
 Reserved Notation "A `\` B" (at level 50, left associativity).
 Reserved Notation "~` A" (at level 35, right associativity).
 
-(* Reserved notation for lattices with bottom/top elements. *)
-Reserved Notation "0%O" (at level 0).  (* deprecated in 1.17.0 *)
-Reserved Notation "1%O" (at level 0).  (* deprecated in 1.17.0 *)
-Reserved Notation "\bot" (at level 0).
-Reserved Notation "\top" (at level 0).
-
-(* Notations for dual partial and total order *)
+(* Notations for dual order *)
 Reserved Notation "x <=^d y" (at level 70, y at next level).
 Reserved Notation "x >=^d y" (at level 70, y at next level).
 Reserved Notation "x <^d y" (at level 70, y at next level).
@@ -529,16 +527,15 @@ Reserved Notation "x <^d y ?<= 'if' c" (at level 70, y, c at next level,
 Reserved Notation "x <^d y ?<= 'if' c :> T" (at level 70, y, c at next level,
   format "x '[hv'  <^d  y '/'  ?<=  'if'  c  :> T ']'").
 
-(* Reserved notation for dual lattice operations. *)
-Reserved Notation "A `&^d` B"  (at level 48, left associativity).
-Reserved Notation "A `|^d` B" (at level 52, left associativity).
-Reserved Notation "A `\^d` B" (at level 50, left associativity).
-Reserved Notation "~^d` A" (at level 35, right associativity).
-
 Reserved Notation "0^d%O" (at level 0).  (* deprecated in 1.17.0 *)
 Reserved Notation "1^d%O" (at level 0).  (* deprecated in 1.17.0 *)
 Reserved Notation "\bot^d" (at level 0).
 Reserved Notation "\top^d" (at level 0).
+
+Reserved Notation "A `&^d` B"  (at level 48, left associativity).
+Reserved Notation "A `|^d` B" (at level 52, left associativity).
+Reserved Notation "A `\^d` B" (at level 50, left associativity).
+Reserved Notation "~^d` A" (at level 35, right associativity).
 
 (* Reserved notations for product ordering of prod or seq *)
 Reserved Notation "x <=^p y" (at level 70, y at next level).
@@ -1078,6 +1075,25 @@ HB.mixin Record isPOrder (d : unit) T of Equality T := {
 HB.structure Definition POrder (d : unit) :=
   { T of Choice T & isPOrder d T }.
 
+#[key="T"]
+HB.mixin Record hasBottom d T of POrder d T := {
+  bottom : T;
+  le0x : forall x, le bottom x;
+}.
+
+#[key="T"]
+HB.mixin Record hasTop d T of POrder d T := {
+  top : T;
+  lex1 : forall x, le x top;
+}.
+
+#[short(type="bPOrderType")]
+HB.structure Definition BPOrder d := { T of hasBottom d T & POrder d T }.
+#[short(type="tPOrderType")]
+HB.structure Definition TPOrder d := { T of hasTop d T & POrder d T }.
+#[short(type="tbPOrderType")]
+HB.structure Definition TBPOrder d := { T of hasTop d T & BPOrder d T }.
+
 Module POrderExports.
 Arguments le_trans {d s} [_ _ _].
 #[deprecated(since="mathcomp 2.0.0", note="Use POrder.clone instead.")]
@@ -1153,7 +1169,7 @@ Variant incompare (x y : T) :
     x x x x true true true true false false true true.
 
 Definition arg_min {I : finType} := @extremum T I le.
-Definition arg_max {I : finType}  := @extremum T I ge.
+Definition arg_max {I : finType} := @extremum T I ge.
 
 (* Lifted min/max operations. *)
 Section LiftedPOrder.
@@ -1261,6 +1277,9 @@ Notation leLHS := (X in (X <= _)%O)%pattern.
 Notation leRHS := (X in (_ <= X)%O)%pattern.
 Notation ltLHS := (X in (X < _)%O)%pattern.
 Notation ltRHS := (X in (_ < X)%O)%pattern.
+
+Notation "\bot" := bottom : order_scope.
+Notation "\top" := top : order_scope.
 
 End POSyntax.
 HB.export POSyntax.
@@ -1383,13 +1402,6 @@ Notation "x `|` y" := (join x y) : order_scope.
 End LatticeSyntax.
 HB.export LatticeSyntax.
 
-#[key="T"]
-HB.mixin Record hasBottom d (T : Type) of POrder d T := {
-  bottom : T;
-  le0x : forall x, bottom <= x;
-}.
-#[short(type="bPOrderType")]
-HB.structure Definition BPOrder d := { T of hasBottom d T & POrder d T }.
 #[short(type="bLatticeType")]
 HB.structure Definition BLattice d := { T of hasBottom d T & Lattice d T }.
 
@@ -1404,8 +1416,6 @@ End BLatticeExports.
 HB.export BLatticeExports.
 
 Module BLatticeSyntax.
-Notation "0%O" := bottom (only parsing).  (* deprecated in 1.17.0 *)
-Notation "\bot" := bottom : order_scope.
 
 Notation "\join_ ( i <- r | P ) F" :=
   (\big[@join _ _ / \bot]_(i <- r | P%B) F%O) : order_scope.
@@ -1435,24 +1445,12 @@ Notation "\join_ ( i 'in' A ) F" :=
 End BLatticeSyntax.
 HB.export BLatticeSyntax.
 
-#[key="T"]
-HB.mixin Record hasTop d (T : Type) of POrder d T := {
-  top : T;
-  lex1 : forall x, x <= top;
-}.
-#[short(type="tPOrderType")]
-HB.structure Definition TPOrder d := { T of hasTop d T & POrder d T }.
-#[short(type="tbPOrderType")]
-HB.structure Definition TBPOrder d := { T of hasTop d T & BPOrder d T }.
 #[short(type="tLatticeType")]
 HB.structure Definition TLattice d := { T of hasTop d T & Lattice d T }.
 #[short(type="tbLatticeType")]
 HB.structure Definition TBLattice d := { T of BLattice d T & TLattice d T }.
 
 Module TLatticeSyntax.
-
-Notation "1%O" := top (only parsing).  (* deprecated in 1.17.0 *)
-Notation "\top" := top : order_scope.
 
 Notation "\meet_ ( i <- r | P ) F" :=
   (\big[meet / \top]_(i <- r | P%B) F%O) : order_scope.
