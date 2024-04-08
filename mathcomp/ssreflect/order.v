@@ -1062,7 +1062,7 @@ Reserved Notation "'{' 'tblmorphism' U '->' V '}'"
 
 Module Order.
 
-Definition disp_t := unit.
+#[projections(primitive)] Record disp_t := Disp {d1 : unit; d2 : unit}.
 
 HB.mixin Record isPOrder (d : disp_t) T of Equality T := {
   le       : rel T;
@@ -1616,7 +1616,7 @@ HB.export FinTotalExports.
 (********)
 
 Definition dual T : Type := T.
-Definition dual_display : disp_t -> disp_t. Proof. exact. Qed.
+Definition dual_display (d : disp_t) := {| d1 := d2 d; d2 := d1 d |}.
 
 Notation dual_le := (@le (dual_display _) _).
 Notation dual_lt := (@lt (dual_display _) _).
@@ -5958,7 +5958,7 @@ HB.export DeprecatedSubOrder.Exports.
 Module NatOrder.
 Section NatOrder.
 
-Fact nat_display : disp_t. Proof. exact: tt. Qed.
+Fact nat_display : disp_t. Proof. exact: Disp tt tt. Qed.
 
 Lemma ltn_def x y : (x < y)%N = (y != x) && (x <= y)%N.
 Proof. by rewrite ltn_neqAle eq_sym. Qed.
@@ -6077,7 +6077,7 @@ End NatMonotonyTheory.
 (* first parameter is set to dvd_display.                                   *)
 (****************************************************************************)
 
-Fact dvd_display : disp_t. Proof. exact: tt. Qed.
+Fact dvd_display : disp_t. Proof. exact: Disp tt tt. Qed.
 
 Module DvdSyntax.
 
@@ -6242,7 +6242,7 @@ HB.export NatDvd.Exports.
 Module OrdinalOrder.
 Section OrdinalOrder.
 
-Fact ord_display : disp_t. Proof. exact: tt. Qed.
+Fact ord_display : disp_t. Proof. exact: Disp tt tt. Qed.
 
 Section PossiblyTrivial.
 Variable (n : nat).
@@ -6291,7 +6291,7 @@ Module BoolOrder.
 Section BoolOrder.
 Implicit Types (x y : bool).
 
-Fact bool_display : disp_t. Proof. exact: tt. Qed.
+Fact bool_display : disp_t. Proof. exact: Disp tt tt. Qed.
 
 Fact andbE x y : x && y = if (x < y)%N then x else y.
 Proof. by case: x y => [] []. Qed.
@@ -7970,7 +7970,7 @@ Proof. by []. Qed.
 Lemma complEsubset A : ~` A = ~: A.
 Proof. by []. Qed.
 
-Fact subset_display : disp_t. Proof. exact: tt. Qed.
+Fact subset_display : disp_t. Proof. exact: Disp tt tt. Qed.
 
 End SetSubsetOrder.
 
