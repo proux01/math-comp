@@ -5027,6 +5027,14 @@ Lemma mulr1 : right_id oneU mulU.
 Proof. by move=> x; apply: val_inj; rewrite !SubK mulr1. Qed.
 Lemma mulrDl : left_distributive mulU +%R.
 Proof.
+move=> x y z; apply: val_inj.
+rewrite !(SubK, raddfD)/=.
+Fail rewrite SubK.
+rewrite [X in _ = X + _]SubK.
+rewrite [X in _ = _ + X]SubK.
+by rewrite mulrDl.
+
+
 by move=> x y z; apply: val_inj; rewrite !(SubK, raddfD)/= !SubK mulrDl.
 Qed.
 Lemma mulrDr : right_distributive mulU +%R.
