@@ -559,9 +559,10 @@ HB.mixin Record isSub (T : Type) (P : pred T) (sub_sort : Type) := {
 #[short(type="subType")]
 HB.structure Definition SubType (T : Type) (P : pred T) := { S of isSub T P S }.
 
-Notation val := (isSub.val_subdef (SubType.on _)).
-Notation "\val" := (isSub.val_subdef (SubType.on _)) (only parsing).
-Notation "\val" := (isSub.val_subdef _) (only printing).
+(* We need a canonical projection so that rewrite can do keyd matching modulo CS inference *)
+Notation val := ((SubType.on _).(isSub.val_subdef)).
+Notation "\val" := ((SubType.on _).(isSub.val_subdef)) (only parsing).
+Notation "\val" := ((_).(isSub.val_subdef)) (only printing).
 
 #[short(type="subEqType")]
 HB.structure Definition SubEquality T (P : pred T) :=
@@ -580,7 +581,7 @@ Section Theory.
 
 Variable sT : subType P.
 
-Local Notation val := (isSub.val_subdef (SubType.on sT)).
+Local Notation val := ((SubType.on sT).(isSub.val_subdef)).
 Local Notation Sub := (@Sub _ _ sT).
 
 Lemma SubK x Px : val (@Sub x Px) = x. Proof. exact: SubK_subproof. Qed.
