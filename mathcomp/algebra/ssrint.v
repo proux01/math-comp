@@ -48,13 +48,17 @@ Declare Scope int_scope.
 Declare Scope distn_scope.
 Declare Scope rat_scope.
 
-Reserved Notation "n %:Z" (at level 2, left associativity, format "n %:Z").
+Reserved Notation "n %:Z" (left associativity, format "n %:Z").
+#[warning="-postfix-notation-not-level-1"]
 Reserved Notation "n = m :> 'int'"
   (at level 70, m at next level, format "n  =  m  :>  'int'").
+#[warning="-postfix-notation-not-level-1"]
 Reserved Notation "n == m :> 'int'"
   (at level 70, m at next level, format "n  ==  m  :>  'int'").
+#[warning="-postfix-notation-not-level-1"]
 Reserved Notation "n != m :> 'int'"
   (at level 70, m at next level, format "n  !=  m  :>  'int'").
+#[warning="-postfix-notation-not-level-1"]
 Reserved Notation "n <> m :> 'int'"
   (at level 70, m at next level, format "n  <>  m  :>  'int'").
 
@@ -522,7 +526,7 @@ Notation "x *~ n" := (intmul x n)
   (at level 40, left associativity, format "x  *~  n") : ring_scope.
 Notation intr := ( *~%R 1).
 Notation "n %:~R" := (1 *~ n)%R
-  (at level 2, left associativity, format "n %:~R")  : ring_scope.
+  (at level 1, left associativity, format "n %:~R")  : ring_scope.
 
 Lemma pmulrn (R : zmodType) (x : R) (n : nat) : x *+ n = x *~ n%:Z.
 Proof. by []. Qed.
@@ -533,7 +537,7 @@ Proof. by case: n=> [] //; rewrite ?oppr0. Qed.
 Section ZintLmod.
 
 Definition zmodule (M : Type) : Type := M.
-Local Notation "M ^z" := (zmodule M) (at level 2, format "M ^z") : type_scope.
+Local Notation "M ^z" := (zmodule M) (at level 1, format "M ^z") : type_scope.
 Local Coercion Posz : nat >-> int.
 
 Variable M : zmodType.
