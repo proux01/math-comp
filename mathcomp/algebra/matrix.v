@@ -201,16 +201,16 @@ Import GroupScope.
 Import GRing.Theory.
 Local Open Scope ring_scope.
 
-Reserved Notation "''M_' n"     (at level 8, n at level 2, format "''M_' n").
-Reserved Notation "''rV_' n"    (at level 8, n at level 2, format "''rV_' n").
-Reserved Notation "''cV_' n"    (at level 8, n at level 2, format "''cV_' n").
-Reserved Notation "''M_' ( n )" (at level 8). (* only parsing *)
-Reserved Notation "''M_' ( m , n )" (at level 8, format "''M_' ( m ,  n )").
-Reserved Notation "''M[' R ]_ n"    (at level 8, n at level 2). (* only parsing *)
-Reserved Notation "''rV[' R ]_ n"   (at level 8, n at level 2). (* only parsing *)
-Reserved Notation "''cV[' R ]_ n"   (at level 8, n at level 2). (* only parsing *)
-Reserved Notation "''M[' R ]_ ( n )"     (at level 8). (* only parsing *)
-Reserved Notation "''M[' R ]_ ( m , n )" (at level 8). (* only parsing *)
+Reserved Notation "''M_' n"     (at level 0, n at level 2, format "''M_' n").
+Reserved Notation "''rV_' n"    (at level 0, n at level 2, format "''rV_' n").
+Reserved Notation "''cV_' n"    (at level 0, n at level 2, format "''cV_' n").
+Reserved Notation "''M_' ( n )". (* only parsing *)
+Reserved Notation "''M_' ( m , n )" (format "''M_' ( m ,  n )").
+Reserved Notation "''M[' R ]_ n"    (at level 0, n at level 2). (* only parsing *)
+Reserved Notation "''rV[' R ]_ n"   (at level 0, n at level 2). (* only parsing *)
+Reserved Notation "''cV[' R ]_ n"   (at level 0, n at level 2). (* only parsing *)
+Reserved Notation "''M[' R ]_ ( n )". (* only parsing *)
+Reserved Notation "''M[' R ]_ ( m , n )". (* only parsing *)
 
 Reserved Notation "\matrix_ i E"
   (at level 36, E at level 36, i at level 2,

@@ -35,10 +35,8 @@ Local Open Scope ring_scope.
 (* mul_mod_Iirr i j := mul_Iirr i (mod_Iirr j), for j : Iirr (G / H).         *)
 (******************************************************************************)
 
-Reserved Notation "''I[' phi ]"
-  (at level 8, format "''I[' phi ]").
-Reserved Notation "''I_' G [ phi ]"
-  (at level 8, G at level 2, format "''I_' G [ phi ]").
+Reserved Notation "''I[' phi ]" (format "''I[' phi ]").
+Reserved Notation "''I_' G [ phi ]" (G at level 2, format "''I_' G [ phi ]").
 
 Section ConjDef.
 

@@ -242,38 +242,36 @@ Notation "''Fix_' ( S | to ) [ a ]" := (S :&: 'Fix_to[a])
  (at level 8, format "''Fix_' ( S  |  to ) [ a ]") : group_scope.
 
 Notation "''C' ( S | to )" := (astab S to)
- (at level 8, format "''C' ( S  |  to )") : group_scope.
+  (format "''C' ( S  |  to )") : group_scope.
 
 Notation "''C_' A ( S | to )" := (A :&: 'C(S | to))
- (at level 8, A at level 2, format "''C_' A ( S  |  to )") : group_scope.
-Notation "''C_' ( A ) ( S | to )" := 'C_A(S | to)
-  (at level 8, only parsing) : group_scope.
+  (A at level 2, format "''C_' A ( S  |  to )") : group_scope.
+Notation "''C_' ( A ) ( S | to )" := 'C_A(S | to) (only parsing) : group_scope.
 
 Notation "''C' [ x | to ]" := ('C([set x] | to))
- (at level 8, format "''C' [ x  |  to ]") : group_scope.
+  (format "''C' [ x  |  to ]") : group_scope.
 
 Notation "''C_' A [ x | to ]" := (A :&: 'C[x | to])
-  (at level 8, A at level 2, format "''C_' A [ x  |  to ]") : group_scope.
-Notation "''C_' ( A ) [ x | to ]" := 'C_A[x | to]
-  (at level 8, only parsing) : group_scope.
+  (A at level 2, format "''C_' A [ x  |  to ]") : group_scope.
+Notation "''C_' ( A ) [ x | to ]" := 'C_A[x | to] (only parsing) : group_scope.
 
 Notation "''N' ( S | to )" := (astabs S to)
-  (at level 8, format "''N' ( S  |  to )") : group_scope.
+  (format "''N' ( S  |  to )") : group_scope.
 
 Notation "''N_' A ( S | to )" := (A :&: 'N(S | to))
-  (at level 8, A at level 2, format "''N_' A ( S  |  to )") : group_scope.
+  (A at level 2, format "''N_' A ( S  |  to )") : group_scope.
 
 Notation "[ 'acts' A , 'on' S | to ]" := (A \subset pred_of_set 'N(S | to))
-  (at level 0, format "[ 'acts'  A ,  'on'  S  |  to ]") : form_scope.
+  (format "[ 'acts'  A ,  'on'  S  |  to ]") : form_scope.
 
 Notation "{ 'acts' A , 'on' S | to }" := (acts_on A S to)
-  (at level 0, format "{ 'acts'  A ,  'on'  S  |  to }") : type_scope.
+  (format "{ 'acts'  A ,  'on'  S  |  to }") : type_scope.
 
 Notation "[ 'transitive' A , 'on' S | to ]" := (atrans A S to)
-  (at level 0, format "[ 'transitive'  A ,  'on'  S  |  to ]") : form_scope.
+  (format "[ 'transitive'  A ,  'on'  S  |  to ]") : form_scope.
 
 Notation "[ 'faithful' A , 'on' S | to ]" := (faithful A S to)
-  (at level 0, format "[ 'faithful'  A ,  'on'  S  |  to ]") : form_scope.
+  (format "[ 'faithful'  A ,  'on'  S  |  to ]") : form_scope.
 
 Section RawAction.
 (* Lemmas that do not require the group structure on the action domain. *)
@@ -1873,16 +1871,16 @@ Arguments acts_on_group {aT rT D%g R%g} A%g S%g to%gact.
 Arguments acts_irreducibly {aT rT D%g R%g} A%g S%g to%gact.
 
 Notation "''C_' ( | to ) ( A )" := (gacent to A)
-  (at level 8, format "''C_' ( | to ) ( A )") : group_scope.
+  (format "''C_' ( | to ) ( A )") : group_scope.
 Notation "''C_' ( G | to ) ( A )" := (G :&: 'C_(|to)(A))
-  (at level 8, format "''C_' ( G  |  to ) ( A )") : group_scope.
+  (format "''C_' ( G  |  to ) ( A )") : group_scope.
 Notation "''C_' ( | to ) [ a ]" := 'C_(|to)([set a])
-  (at level 8, format "''C_' ( | to ) [ a ]") : group_scope.
+  (format "''C_' ( | to ) [ a ]") : group_scope.
 Notation "''C_' ( G | to ) [ a ]" := 'C_(G | to)([set a])
-  (at level 8, format "''C_' ( G  |  to ) [ a ]") : group_scope.
+  (format "''C_' ( G  |  to ) [ a ]") : group_scope.
 
 Notation "{ 'acts' A , 'on' 'group' G | to }" := (acts_on_group A G to)
-  (at level 0, format "{ 'acts'  A ,  'on'  'group'  G  |  to }") : type_scope.
+  (format "{ 'acts'  A ,  'on'  'group'  G  |  to }") : type_scope.
 
 Section RawGroupAction.
 

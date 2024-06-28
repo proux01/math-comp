@@ -163,8 +163,7 @@ Arguments pi_arg_of_nat n /.
 Arguments pi_arg_of_fin_pred {T pT} A /.
 Definition pi_of (n : pi_arg) : nat_pred := [pred p in primes n].
 
-Notation "\pi ( n )" := (pi_of n)
-  (at level 0, format "\pi ( n )") : nat_scope.
+Notation "\pi ( n )" := (pi_of n) (format "\pi ( n )") : nat_scope.
 Notation "\p 'i' ( A )" := \pi(#|A|)
   (at level 0, format "\p 'i' ( A )") : nat_scope.
 
