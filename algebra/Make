@@ -4,8 +4,6 @@ countalg.v
 finalg.v
 fraction.v
 intdiv.v
-interval.v
-interval_inference.v
 matrix.v
 mxalgebra.v
 mxpoly.v
@@ -20,10 +18,12 @@ alg/algebra.v
 alg/divalg.v
 alg/decfield.v
 alg/ssralg.v
-ssrint.v
 num_theory/orderedzmod.v
 num_theory/numdomain.v
 num_theory/numfield.v
+num_theory/ssrint.v
+num_theory/interval.v
+num_theory/interval_inference.v
 num_theory/ssrnum.v
 vector.v
 zmodp.v
