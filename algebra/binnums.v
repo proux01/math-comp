@@ -130,6 +130,68 @@ move=> pn; elim/pos_nat_ind: pn p' n' => [p' n' p'n'||];
 - by rewrite mulSn pos_natD// -doubleMl pos_natE.
 Qed.
 
+Definition mask_nat m (n : nat) :=
+  match m with
+  | Pos.IsNul => n == 0
+  | Pos.IsPos p => pos_nat p n
+  | Pos.IsNeg => false
+  end.
+
+Lemma mask_nat_double_pred p n : pos_nat p n ->
+  mask_nat (Pos.double_pred_mask p) n.-1.*2.
+Proof.
+by case: pos_natP => [//|//|{}p {}n _ _ pn _|{}p {}n _ _ pn _] /=;
+  rewrite !pos_natE ?pos_nat_pred_double.
+Qed.
+
+Lemma mask_nat_double m n : mask_nat m n ->
+  mask_nat (Pos.double_mask m) n.*2.
+Proof. by case: m => [/eqP->//| p |//] /=; rewrite pos_natE. Qed.
+
+Lemma mask_nat_succ_double m n : mask_nat m n ->
+  mask_nat (Pos.succ_double_mask m) n.*2.+1.
+Proof. by case: m => [/eqP->//| p |//] /=; rewrite pos_natE. Qed.
+
+Lemma mask_natB p n (pn : pos_nat p n) p' n' (p'n' : pos_nat p' n') :
+  (n' <= n)%N -> mask_nat (Pos.sub_mask p p') (n - n').
+Proof.
+suff: (n' <= n)%N -> (mask_nat (Pos.sub_mask p p') (n - n')%N
+    /\ ((n' < n)%N -> mask_nat (Pos.sub_mask_carry p p') (n - n').-1)).
+  by move=> /[apply] -[].
+elim/pos_nat_ind: pn p' n' p'n' => [p' n' {p n} ||];
+    [|move=> {}p {}n pn IH p' n'..].
+- case: n' => [|n'] /[swap]; first by rewrite /pos_nat Pos_to_nat0F.
+  rewrite ltnS leqn0 => /eqP->; rewrite subnn ltnn.
+  case: pos_natP => [//|//|p n _ /eqP+ + _|p n _ /eqP+ + _].
+    by rewrite -double0 neq_doubleS_double.
+  by rewrite eqSS eq_sym double_eq0 => /eqP->; rewrite /pos_nat Pos_to_nat0F.
+- case: pos_natP => [//|_ _ _|{}p' {}n' _ _ p'n' _|{}p' {}n' _ _ p'n' _] /=.
+  + by rewrite subn1 pos_nat_pred_double// -double_pred mask_nat_double_pred.
+  + rewrite leq_double => n'n; have [pp ppc] := IH _ _ p'n' n'n.
+    rewrite -doubleB mask_nat_double//= ltn_double; split => [//| n'ltn].
+    by rewrite -[(n - n')%N]prednK ?subn_gt0// doubleS mask_nat_succ_double?ppc.
+  + rewrite ltn_double => n'n; have [pp ppc] := IH _ _ p'n' (ltnW n'n).
+    rewrite subnS -doubleB -[(n - n')%N]prednK ?subn_gt0// doubleS.
+    by rewrite mask_nat_succ_double ?mask_nat_double ?ppc.
+- case: pos_natP => [//|_ _ _|{}p' {}n' _ _ p'n' _|{}p' {}n' _ _ p'n' _] /=.
+  + by rewrite subn1 pos_natE pn pos_nat_pred_double.
+  + rewrite leq_Sdouble => n'n; have [pp' pp'c] := IH _ _ p'n' n'n.
+    rewrite subSn ?leq_double// -doubleB mask_nat_succ_double//=.
+    by rewrite mask_nat_double.
+  + rewrite ltnS leq_double => n'n; have [pp' pp'c] := IH _ _ p'n' n'n.
+    rewrite subSS -doubleB mask_nat_double//; split=> [//|].
+    rewrite ltnS ltn_double => n'ltn; rewrite -[(n - n')%N]prednK ?subn_gt0//.
+    by rewrite doubleS mask_nat_succ_double ?pp'c.
+Qed.
+
+Lemma pos_natB p n (pn : pos_nat p n) p' n' (p'n' : pos_nat p' n') :
+  (n' < n)%N -> pos_nat (Pos.sub p p') (n - n').
+Proof.
+move=> /[dup] /ltnW n'n; rewrite /Pos.sub.
+case: Pos.sub_mask (mask_natB pn p'n' n'n) => [/=|//|//].
+by rewrite -subn_gt0 => /eqP->.
+Qed.
+
 Lemma pos_nat_eq p n (pn : pos_nat p n) p' n' (p'n' : pos_nat p' n') :
   Pos.eqb p p' = (n == n').
 Proof.
@@ -235,8 +297,14 @@ Lemma Pos_to_natM i j :
   Pos.to_nat (Pos.mul i j) = (Pos.to_nat i * Pos.to_nat j)%N.
 Proof. exact: eqP (pos_natM (pos_nat_Pos_to_nat i) (pos_nat_Pos_to_nat j)). Qed.
 
+Lemma Pos_to_natB i j : (Pos.to_nat j < Pos.to_nat i)%N ->
+  Pos.to_nat (Pos.sub i j) = (Pos.to_nat i - Pos.to_nat j)%N.
+Proof.
+by move/(pos_natB (pos_nat_Pos_to_nat i) (pos_nat_Pos_to_nat j))/eqP.
+Qed.
+
 Definition Pos_to_natE := (Pos_to_nat1, Pos_to_nat_double, Pos_to_nat_doubleS,
-  Pos_to_natS, Pos_to_natD, Pos_to_nat_pred_double, Pos_to_natM).
+  Pos_to_natS, Pos_to_natD, Pos_to_nat_pred_double, Pos_to_natM, Pos_to_natB).
 
 Definition int_of_Z (i : Z) : int :=
   match i with
